@@ -62,6 +62,7 @@ class PhysicsControls extends Controls<PhysicsControlsEventMap> {
   maxFallSpeed: number;
   movementResistance: number;
   velocity: Vector3 = new Vector3();
+  acceleration: Vector3 = new Vector3();
 
   boundary?: Boundary;
 
@@ -180,6 +181,7 @@ class PhysicsControls extends Controls<PhysicsControlsEventMap> {
 
       this.velocity.addScaledVector(this.velocity, damping);
       this._deltaVelocity.copy(this.velocity).multiplyScalar(stepDelta);
+      this.acceleration.copy(this._deltaVelocity.clone().divideScalar(delta));
       this.collider.translate(this._deltaVelocity);
 
       this._checkCollisions();

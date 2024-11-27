@@ -50,8 +50,9 @@
         gltfLoader.loadAsync('../assets/animations/idle.glb'),
         gltfLoader.loadAsync('../assets/animations/running.glb'),
         gltfLoader.loadAsync('../assets/animations/jumping.glb'),
+        gltfLoader.loadAsync('../assets/animations/jumping_up.glb'),
         gltfLoader.loadAsync('../assets/animations/falling.glb'),
-      ]).then(([world, character, idle, walking, jumping, falling]) => {
+      ]).then(([world, character, idle, walking, jumping, jumpingUp, falling]) => {
         scene.add(world.scene);
         world.scene.traverse(child => {
           if (child.isMesh) {
@@ -90,7 +91,7 @@
             animationClips: {
               idle: idle.animations[0],
               forward: walking.animations[0],
-              jump: jumping.animations[0],
+              jump: jumpingUp.animations[0],
               fall: falling.animations[0],
             },
           },
@@ -103,7 +104,7 @@
               },
               y: {
                 min: -10,
-                max: 20,
+                max: 60,
               },
               z: {
                 min: -20,
@@ -126,7 +127,7 @@
         folder2.add(controls, 'groundMoveSpeed', 0, 40).name('ground move speed').listen();
         folder2.add(controls, 'floatMoveSpeed', 0, 20).name('float move speed').listen();
         folder2.add(controls, 'rotateSpeed', 0, 2).name('rotate speed').listen();
-        folder2.add(controls, 'jumpForce', 0, 30).name('jump force').listen();
+        folder2.add(controls, 'jumpForce', 0, 50).name('jump force').listen();
         folder2.add(controls, 'gravity', 0, 50).name('gravity').listen();
         folder2.add(controls, 'maxFallSpeed', 0, 40).name('max fall speed').listen();
         folder2.add(controls, 'movementResistance', 0, 10).name('resistance').listen();

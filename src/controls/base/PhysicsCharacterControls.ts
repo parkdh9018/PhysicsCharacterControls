@@ -3,6 +3,7 @@ import {
   AnimationClip,
   AnimationMixer,
   AnimationObjectGroup,
+  LoopOnce,
   Object3D,
   Quaternion,
   Vector3,
@@ -37,6 +38,7 @@ class PhysicsCharacterControls extends PhysicsControls {
 
   private _localVelocity: Vector3 = new Vector3();
   private _worldQuaternion: Quaternion = new Quaternion();
+  private _isJumpOnce: boolean = false;
 
   constructor(
     object: Object3D,
@@ -131,7 +133,13 @@ class PhysicsCharacterControls extends PhysicsControls {
     });
 
     action.reset(); // Reset the action to start from the beginning
-    action.fadeIn(duration);
+    if (key === 'jump') {
+      action.setLoop(LoopOnce, 1); // 한 번만 재생
+      action.clampWhenFinished = true; // 끝난 상태에서 유지
+      action.timeScale = 2.5; // 빠르게 실행
+    } else {
+      action.fadeIn(duration);
+    }
     action.play(); // Play the action
   }
 
@@ -158,11 +166,17 @@ class PhysicsCharacterControls extends PhysicsControls {
       return this._fadeToAction('rightward', this.transitionTime);
     }
 
-    if (this.velocity.y > 0) {
+    if (this.acceleration.y > 0 && !this._isJumpOnce) {
+      this._isJumpOnce = true;
       return this._fadeToAction('jump', this.transitionTime);
     }
 
-    if (this.velocity.y < -this.fallSpeedThreshold) {
+    if (this.acceleration.y < 0) {
+      this._isJumpOnce = false;
+    }
+
+    if (this.acceleration.y < -2) {
+      console.log(this.acceleration.y);
       return this._fadeToAction('fall', this.transitionTime);
     }
 
