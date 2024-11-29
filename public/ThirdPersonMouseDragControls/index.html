@@ -51,8 +51,9 @@
         gltfLoader.loadAsync('../assets/animations/running.glb'),
         gltfLoader.loadAsync('../assets/animations/jumping.glb'),
         gltfLoader.loadAsync('../assets/animations/jumping_up.glb'),
+        gltfLoader.loadAsync('../assets/animations/jumping_down.glb'),
         gltfLoader.loadAsync('../assets/animations/falling.glb'),
-      ]).then(([world, character, idle, walking, jumping, jumpingUp, falling]) => {
+      ]).then(([world, character, idle, walking, jumping, jumpingUp, jumpingDown, falling]) => {
         scene.add(world.scene);
         world.scene.traverse(child => {
           if (child.isMesh) {
@@ -92,6 +93,7 @@
               idle: idle.animations[0],
               forward: walking.animations[0],
               jump: jumpingUp.animations[0],
+              jumpDown: jumpingDown.animations[0],
               fall: falling.animations[0],
             },
           },

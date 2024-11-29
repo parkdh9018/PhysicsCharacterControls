@@ -13,7 +13,7 @@ import { PhysicsControls, PhysicsOptions } from './PhysicsControls';
 /**
  * Animation states that can be used.
  */
-type Animations = 'idle' | 'forward' | 'backward' | 'rightward' | 'leftward' | 'jump' | 'fall';
+type Animations = 'idle' | 'forward' | 'backward' | 'rightward' | 'leftward' | 'jump' | 'jumpDown' | 'fall';
 
 /**
  * Configuration for animations and their options.
@@ -38,7 +38,8 @@ class PhysicsCharacterControls extends PhysicsControls {
 
   private _localVelocity: Vector3 = new Vector3();
   private _worldQuaternion: Quaternion = new Quaternion();
-  private _isJumpOnce: boolean = false;
+  private _isJumping: number = 0;
+  private _isLanding: number = 0;
 
   constructor(
     object: Object3D,
@@ -136,7 +137,8 @@ class PhysicsCharacterControls extends PhysicsControls {
     if (key === 'jump') {
       action.setLoop(LoopOnce, 1); // 한 번만 재생
       action.clampWhenFinished = true; // 끝난 상태에서 유지
-      action.timeScale = 2.5; // 빠르게 실행
+      action.timeScale = 2; // 빠르게 실행
+      action.fadeIn(duration);
     } else {
       action.fadeIn(duration);
     }
@@ -149,6 +151,16 @@ class PhysicsCharacterControls extends PhysicsControls {
   private _updateAnimation() {
     const worldQuaternion = this.object.getWorldQuaternion(this._worldQuaternion);
     this._localVelocity.copy(this.velocity).applyQuaternion(worldQuaternion.invert());
+
+    if (this.isGrounded && this._isJumping > 0 && this._isLanding < 20) {
+      this._isLanding += 1;
+      return this._fadeToAction('jumpDown', 0.1);
+    }
+
+    if (this._isLanding >= 20) {
+      this._isJumping = 0;
+      this._isLanding = 0;
+    }
 
     if (this.isGrounded && this._localVelocity.z > this.moveSpeedThreshold) {
       return this._fadeToAction('forward', this.transitionTime);
@@ -166,17 +178,13 @@ class PhysicsCharacterControls extends PhysicsControls {
       return this._fadeToAction('rightward', this.transitionTime);
     }
 
-    if (this.acceleration.y > 0 && !this._isJumpOnce) {
-      this._isJumpOnce = true;
+    if (this.acceleration.y > 0 && this._isJumping < 20) {
+      this._isJumping += 1;
       return this._fadeToAction('jump', this.transitionTime);
     }
 
-    if (this.acceleration.y < 0) {
-      this._isJumpOnce = false;
-    }
-
-    if (this.acceleration.y < -2) {
-      console.log(this.acceleration.y);
+    if (this.acceleration.y < -2 && this._isJumping >= 20) {
+      this._isJumping += 1;
       return this._fadeToAction('fall', this.transitionTime);
     }
 
