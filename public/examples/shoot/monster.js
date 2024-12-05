@@ -1,12 +1,30 @@
-import { AnimationMixer, AudioLoader, PositionalAudio } from 'three';
+import { AnimationMixer, AudioLoader, Box3, PositionalAudio, Vector3 } from 'three';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Capsule } from 'three/addons/math/Capsule.js';
+
+class MonsterStore {
+  static instances = [];
+
+  static addInstance(monster) {
+    this.instances.push(monster);
+    this.index++;
+  }
+
+  static removeInstance(monster) {
+    this.instances = this.instances.filter(mon => mon.id !== monster.id);
+  }
+}
 
 class Monster {
-  constructor(object, target, runClip, dieClip, audio, growlBuffer, attackBuffer) {
+  static index = 0;
+  constructor(object, collider, target, runClip, dieClip, audio, growlBuffer, attackBuffer) {
+    this.id = Monster.index++;
+
     this.health = 100;
 
     this.object = object;
+    this.collider = collider;
     this.target = target;
 
     this.mixer = new AnimationMixer(this.object);
@@ -26,6 +44,11 @@ class Monster {
     this._targetPosition = this.target.position.clone();
 
     this.runAction.play();
+
+    this.vector1 = new Vector3();
+    this.vector2 = new Vector3();
+
+    MonsterStore.addInstance(this);
   }
 
   hit(damage) {
@@ -37,6 +60,7 @@ class Monster {
       this.audio.setBuffer(this.attackBuffer);
       this.audio.play();
       this.dieAction.play();
+      MonsterStore.removeInstance(this);
     }
   }
 
@@ -53,6 +77,26 @@ class Monster {
   //   }
   // }
 
+  monsterCollisions() {
+    MonsterStore.instances.forEach(target => {
+      if (target.id === this.id) return;
+
+      const d2 = this.collider.start.distanceToSquared(target.collider.start);
+      const r = this.collider.radius + target.collider.radius;
+      const r2 = r * r;
+
+      if (d2 < r2) {
+        const normal = this.vector1.subVectors(this.collider.start, target.collider.start).normalize();
+        normal.y = 0;
+        const d = (r - Math.sqrt(d2)) / 2;
+
+        normal.multiplyScalar(d);
+        this.collider.translate(this.vector2.copy(normal).multiplyScalar(d));
+        target.collider.translate(this.vector2.copy(normal).multiplyScalar(-d));
+      }
+    });
+  }
+
   update(delta) {
     this.mixer.update(delta);
 
@@ -64,8 +108,10 @@ class Monster {
     const distance = this.object.position.distanceTo(this.target.position);
 
     if (distance > 3) {
-      this.object.position.add(direction.multiplyScalar(delta));
+      this.collider.start.add(direction.multiplyScalar(delta));
     }
+    this.monsterCollisions();
+    this.object.position.copy(this.collider.start);
   }
 }
 
@@ -77,6 +123,7 @@ class MonsterFactory {
     this.audioLoader = new AudioLoader();
 
     this.object = null;
+    this.collider = null;
 
     this.runClip = null;
     this.dieClip = null;
@@ -98,6 +145,14 @@ class MonsterFactory {
       this.object = object.scene;
       this.runClip = runClip.animations[0];
       this.dieClip = dieClip.animations[0];
+
+      const objectSize = new Vector3();
+      new Box3().setFromObject(this.object).getSize(objectSize);
+
+      const radius = objectSize.y / 4;
+      const height = objectSize.y;
+
+      this.collider = new Capsule(new Vector3(0, radius, 0), new Vector3(0, height - radius, 0), radius);
     });
 
     Promise.all([
@@ -123,10 +178,21 @@ class MonsterFactory {
       }
     });
 
+    const clonedCollider = this.collider.clone();
+
     const audio = new PositionalAudio(this.listener);
 
-    return new Monster(clonedObject, target, this.runClip, this.dieClip, audio, this.growlBuffer, this.attackBuffer);
+    return new Monster(
+      clonedObject,
+      clonedCollider,
+      target,
+      this.runClip,
+      this.dieClip,
+      audio,
+      this.growlBuffer,
+      this.attackBuffer,
+    );
   }
 }
 
-export { Monster, MonsterFactory };
+export { Monster, MonsterFactory, MonsterStore };
