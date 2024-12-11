@@ -30,10 +30,12 @@ export class MonsterFactory {
       this.gltfLoader.loadAsync('../../assets/models/monster.glb'),
       this.gltfLoader.loadAsync('../../assets/animations/monster_run.glb'),
       this.gltfLoader.loadAsync('../../assets/animations/monster_die.glb'),
-    ]).then(([object, runClip, dieClip]) => {
+      this.gltfLoader.loadAsync('../../assets/animations/monster_attack.glb'),
+    ]).then(([object, runClip, dieClip, attackClip]) => {
       this.object = object.scene;
       this.runClip = runClip.animations[0];
       this.dieClip = dieClip.animations[0];
+      this.attackClip = attackClip.animations[0].trim(0, 0.5);
       this.collider = createCollider(this.object);
     });
 
@@ -47,7 +49,7 @@ export class MonsterFactory {
   }
 
   createMonster(target) {
-    if (!this.object || !this.runClip || !this.dieClip || !this.growlBuffer || !this.attackBuffer) {
+    if (!this.object || !this.runClip || !this.dieClip || !this.attackClip || !this.growlBuffer || !this.attackBuffer) {
       console.warn('GLTF data is not loaded. Call loadGLTF() first.');
       return null;
     }
@@ -70,6 +72,7 @@ export class MonsterFactory {
       target,
       this.runClip,
       this.dieClip,
+      this.attackClip,
       audio,
       this.growlBuffer,
       this.attackBuffer,

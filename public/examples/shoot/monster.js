@@ -1,8 +1,8 @@
-import { AnimationMixer, Vector3 } from 'three';
+import { AnimationMixer, LoopOnce, Vector3 } from 'three';
 
 class Monster {
   static index = 0;
-  constructor(object, collider, target, runClip, dieClip, audio, growlBuffer, attackBuffer) {
+  constructor(object, collider, target, runClip, dieClip, attackClip, audio, growlBuffer, attackBuffer) {
     this.id = Monster.index++;
 
     this.health = 100;
@@ -17,8 +17,22 @@ class Monster {
     this.actions = {
       runAction: this.mixer.clipAction(runClip),
       dieAction: this.mixer.clipAction(dieClip),
+      attackAction: this.mixer.clipAction(attackClip),
     };
     this.actions.dieAction.clampWhenFinished = true;
+    this.actions.attackAction.clampWhenFinished = true;
+    this.actions.attackAction.loop = LoopOnce;
+
+    this.actions.runAction.play();
+    this.mixer.addEventListener('finished', event => {
+      console.log('finished');
+      if (event.action === this.actions.attackAction) {
+        console.log('action1 finished, starting action2');
+        this.actions.runAction.reset(); // 상태 초기화
+        this.actions.runAction.crossFadeFrom(this.actions.attackAction, 0.5);
+        this.actions.runAction.play(); // 다음 애니메이션 재생
+      }
+    });
 
     // audio
     this.audio = audio;
@@ -34,12 +48,17 @@ class Monster {
 
     this._targetPosition = this.target.position.clone();
 
-    this.actions.runAction.play();
-
     this.vector1 = new Vector3();
     this.vector2 = new Vector3();
   }
-  attack() {}
+
+  attack() {
+    if (!this.actions.attackAction.isRunning()) {
+      this.actions.attackAction.reset();
+      this.actions.attackAction.crossFadeFrom(this.actions.runAction, 0.5);
+      this.actions.attackAction.play();
+    }
+  }
 
   hit(damage) {
     this.health -= damage;
@@ -65,11 +84,8 @@ class Monster {
     this._targetPosition.y = 0;
     this.object.lookAt(this._targetPosition);
     const direction = this._targetPosition.sub(this.object.position).normalize();
-    const distance = this.object.position.distanceTo(this.target.position);
 
-    if (distance > 3) {
-      this.collider.start.add(direction.multiplyScalar(delta));
-    }
+    this.collider.start.add(direction.multiplyScalar(delta));
   }
 
   _collide(something) {
@@ -106,44 +122,14 @@ class Monster {
   }
 
   update(delta, monsters) {
-    this._moveToTarget(delta);
+    const distance = this.object.position.distanceTo(this.target.position);
+    if (distance < 2) this.attack();
+    if (!this.actions.attackAction.isRunning()) this._moveToTarget(delta * 3);
     this._collideMonsters(monsters);
     this._syncObjectToCollider();
     this._playAnimation(delta);
   }
-
-  // playAnimation(clipName) {
-  //   const clip = this.clips.find(clip => clip.name === clipName);
-  //   if (clip) {
-  //     if (this.currentAction) {
-  //       this.currentAction.stop();
-  //     }
-  //     this.currentAction = this.mixer.clipAction(clip);
-  //     this.currentAction.play();
-  //   } else {
-  //     console.warn(`Clip "${clipName}" not found.`);
-  //   }
-  // }
-
-  // monsterCollisions() {
-  //   MonsterStore.instances.forEach(target => {
-  //     if (target.id === this.id) return;
-
-  //     const d2 = this.collider.start.distanceToSquared(target.collider.start);
-  //     const r = this.collider.radius + target.collider.radius;
-  //     const r2 = r * r;
-
-  //     if (d2 < r2) {
-  //       const normal = this.vector1.subVectors(this.collider.start, target.collider.start).normalize();
-  //       normal.y = 0;
-  //       const d = (r - Math.sqrt(d2)) / 2;
-
-  //       normal.multiplyScalar(d);
-  //       this.collider.translate(this.vector2.copy(normal).multiplyScalar(d));
-  //       target.collider.translate(this.vector2.copy(normal).multiplyScalar(-d));
-  //     }
-  //   });
-  // }
+  a;
 }
 
 export { Monster };
