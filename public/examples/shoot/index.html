@@ -29,7 +29,7 @@
 
       import { FirstPersonPointerLockControls } from 'physics-character-controls';
 
-      import { Monster, MonsterFactory, MonsterStore } from './monster.js';
+      import { MonsterFactory } from './MonsterFactory.js';
 
       const container = document.getElementById('container');
 
@@ -154,10 +154,12 @@
       const monsters = [];
       const monsterObjects = [];
 
+      console.log(controls);
+
       const monsterFactory = new MonsterFactory(listener);
       monsterFactory.loadGLTF().then(() => {
         monsterInterval = setInterval(() => {
-          if (MonsterStore.instances.length > 20) return;
+          if (monsters.length > 20) return;
 
           const monster = monsterFactory.createMonster(camera);
           if (!monster) return;
@@ -166,7 +168,7 @@
           scene.add(monster.object);
           monsters.push(monster);
           monsterObjects.push(monster.object);
-        }, 4030);
+        }, 1030);
       });
 
       const raycaster = new THREE.Raycaster();
@@ -201,7 +203,7 @@
         controls && controls.update(delta);
 
         monsters.forEach(monster => {
-          monster.update(delta);
+          monster.update(delta, monsters);
         });
 
         renderer.render(scene, camera);
