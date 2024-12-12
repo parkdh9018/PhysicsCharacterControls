@@ -2,13 +2,30 @@ import { AnimationMixer, LoopOnce, Vector3 } from 'three';
 
 class Monster {
   static index = 0;
-  constructor(object, collider, target, runClip, dieClip, attackClip, hitClip, audio, growlBuffer, attackBuffer) {
+  constructor(
+    object,
+    collider,
+    target,
+    runClip,
+    dieClip,
+    attackClip,
+    hitClip,
+    audio,
+    growlBuffer,
+    attackBuffer,
+    healthBar,
+  ) {
     this.id = Monster.index++;
 
+    this.object = object;
+
     this.health = 100;
+    this.healthBar = healthBar;
+    healthBar.object.position.y = 2;
+    this.object.add(healthBar.object);
+
     this.damage = 5;
 
-    this.object = object;
     this.collider = collider;
     this.target = target;
 
@@ -65,6 +82,7 @@ class Monster {
     this.health -= damage;
     this.actions.hitAction.reset();
     this.actions.hitAction.play();
+    this.healthBar.update(this.health);
 
     if (this.health <= 0) {
       this.audio.stop();

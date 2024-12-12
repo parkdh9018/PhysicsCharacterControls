@@ -3,6 +3,7 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
 import { Monster } from './Monster.js';
+import { HealthBar } from './HealthBar.js';
 
 export class MonsterFactory {
   constructor(listener) {
@@ -59,11 +60,8 @@ export class MonsterFactory {
       return null;
     }
     console.log('created');
-    // const healthBarMaterial = new SpriteMaterial();
-    // const healthBar = new Sprite(healthBarMaterial);
-    // healthBar.scale.set(0.2, 0.05, 0.05);
-    // healthBar.position.y = 2;
-    // this.object.add(healthBar);
+
+    const healthBar = new HealthBar(0.2, 0.02, 100);
 
     const clonedObject = SkeletonUtils.clone(this.object);
     clonedObject.traverse(child => {
@@ -88,7 +86,7 @@ export class MonsterFactory {
       audio,
       this.growlBuffer,
       this.attackBuffer,
-      this.worldOctree,
+      healthBar,
     );
   }
 }
