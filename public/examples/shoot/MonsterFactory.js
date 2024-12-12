@@ -31,11 +31,13 @@ export class MonsterFactory {
       this.gltfLoader.loadAsync('../../assets/animations/monster_run.glb'),
       this.gltfLoader.loadAsync('../../assets/animations/monster_die.glb'),
       this.gltfLoader.loadAsync('../../assets/animations/monster_attack.glb'),
-    ]).then(([object, runClip, dieClip, attackClip]) => {
+      this.gltfLoader.loadAsync('../../assets/animations/monster_hit.glb'),
+    ]).then(([object, runClip, dieClip, attackClip, hitClip]) => {
       this.object = object.scene;
       this.runClip = runClip.animations[0];
       this.dieClip = dieClip.animations[0];
-      this.attackClip = attackClip.animations[0].trim(0, 0.5);
+      this.attackClip = attackClip.animations[0];
+      this.hitClip = hitClip.animations[0];
       this.collider = createCollider(this.object);
     });
 
@@ -49,10 +51,19 @@ export class MonsterFactory {
   }
 
   createMonster(target) {
-    if (!this.object || !this.runClip || !this.dieClip || !this.attackClip || !this.growlBuffer || !this.attackBuffer) {
+    if (
+      (!this.object || !this.runClip || !this.dieClip || !this.attackClip || !this.hitClip,
+      !this.growlBuffer || !this.attackBuffer)
+    ) {
       console.warn('GLTF data is not loaded. Call loadGLTF() first.');
       return null;
     }
+    console.log('created');
+    // const healthBarMaterial = new SpriteMaterial();
+    // const healthBar = new Sprite(healthBarMaterial);
+    // healthBar.scale.set(0.2, 0.05, 0.05);
+    // healthBar.position.y = 2;
+    // this.object.add(healthBar);
 
     const clonedObject = SkeletonUtils.clone(this.object);
     clonedObject.traverse(child => {
@@ -73,6 +84,7 @@ export class MonsterFactory {
       this.runClip,
       this.dieClip,
       this.attackClip,
+      this.hitClip,
       audio,
       this.growlBuffer,
       this.attackBuffer,

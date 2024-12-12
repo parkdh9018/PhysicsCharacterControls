@@ -2,7 +2,7 @@ import { AnimationMixer, LoopOnce, Vector3 } from 'three';
 
 class Monster {
   static index = 0;
-  constructor(object, collider, target, runClip, dieClip, attackClip, audio, growlBuffer, attackBuffer) {
+  constructor(object, collider, target, runClip, dieClip, attackClip, hitClip, audio, growlBuffer, attackBuffer) {
     this.id = Monster.index++;
 
     this.health = 100;
@@ -18,20 +18,21 @@ class Monster {
       runAction: this.mixer.clipAction(runClip),
       dieAction: this.mixer.clipAction(dieClip),
       attackAction: this.mixer.clipAction(attackClip),
+      hitAction: this.mixer.clipAction(hitClip),
     };
     this.actions.dieAction.clampWhenFinished = true;
     this.actions.attackAction.clampWhenFinished = true;
     this.actions.attackAction.loop = LoopOnce;
 
+    this.actions.hitAction.clampWhenFinished = true;
+    this.actions.hitAction.timeScale = 3;
+    this.actions.hitAction.loop = LoopOnce;
+
     this.actions.runAction.play();
     this.mixer.addEventListener('finished', event => {
-      console.log('finished');
-      if (event.action === this.actions.attackAction) {
-        console.log('action1 finished, starting action2');
-        this.actions.runAction.reset(); // 상태 초기화
-        this.actions.runAction.crossFadeFrom(this.actions.attackAction, 0.5);
-        this.actions.runAction.play(); // 다음 애니메이션 재생
-      }
+      this.actions.runAction.reset(); // 상태 초기화
+      this.actions.runAction.crossFadeFrom(event.action, 0.5);
+      this.actions.runAction.play(); // 다음 애니메이션 재생
     });
 
     // audio
@@ -62,6 +63,8 @@ class Monster {
 
   hit(damage) {
     this.health -= damage;
+    this.actions.hitAction.reset();
+    this.actions.hitAction.play();
 
     if (this.health <= 0) {
       this.audio.stop();
@@ -124,12 +127,11 @@ class Monster {
   update(delta, monsters) {
     const distance = this.object.position.distanceTo(this.target.position);
     if (distance < 2) this.attack();
-    if (!this.actions.attackAction.isRunning()) this._moveToTarget(delta * 3);
+    if (!this.actions.attackAction.isRunning() && !this.actions.hitAction.isRunning()) this._moveToTarget(delta * 3);
     this._collideMonsters(monsters);
     this._syncObjectToCollider();
     this._playAnimation(delta);
   }
-  a;
 }
 
 export { Monster };
