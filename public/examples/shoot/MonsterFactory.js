@@ -1,68 +1,32 @@
-import { AudioLoader, Box3, PositionalAudio, Vector3 } from 'three';
+import { Box3, PositionalAudio, Vector3 } from 'three';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
 import { Monster } from './Monster.js';
 import { HealthBar } from './HealthBar.js';
 
 export class MonsterFactory {
-  constructor(listener) {
+  constructor(listener, objectGltf, runClip, dieClip, attackClip, hitClip, growlBuffer, attackBuffer) {
     this.listener = listener;
 
-    this.gltfLoader = new GLTFLoader();
-    this.audioLoader = new AudioLoader();
+    this.object = objectGltf.scene;
+    this.collider = createCollider(this.object);
 
-    this.object = null;
-    this.collider = null;
+    this.runClip = runClip.animations[0];
+    this.dieClip = dieClip.animations[0];
+    this.attackClip = attackClip.animations[0];
+    this.hitClip = hitClip.animations[0];
 
-    this.runClip = null;
-    this.dieClip = null;
-
-    this.growlBuffer = null;
-    this.attackBuffer = null;
+    this.growlBuffer = growlBuffer;
+    this.attackBuffer = attackBuffer;
 
     this.monsters = [];
-
-    this.loadGLTF();
-  }
-
-  async loadGLTF() {
-    Promise.all([
-      this.gltfLoader.loadAsync('../../assets/models/monster.glb'),
-      this.gltfLoader.loadAsync('../../assets/animations/monster_run.glb'),
-      this.gltfLoader.loadAsync('../../assets/animations/monster_die.glb'),
-      this.gltfLoader.loadAsync('../../assets/animations/monster_attack.glb'),
-      this.gltfLoader.loadAsync('../../assets/animations/monster_hit.glb'),
-    ]).then(([object, runClip, dieClip, attackClip, hitClip]) => {
-      this.object = object.scene;
-      this.runClip = runClip.animations[0];
-      this.dieClip = dieClip.animations[0];
-      this.attackClip = attackClip.animations[0];
-      this.hitClip = hitClip.animations[0];
-      this.collider = createCollider(this.object);
-    });
-
-    Promise.all([
-      this.audioLoader.loadAsync('../../assets/audios/monster-growl.mp3'),
-      this.audioLoader.loadAsync('../../assets/audios/monster-attack.mp3'),
-    ]).then(([growlBuffer, attackBuffer]) => {
-      this.growlBuffer = growlBuffer;
-      this.attackBuffer = attackBuffer;
-    });
   }
 
   createMonster(target) {
-    if (
-      (!this.object || !this.runClip || !this.dieClip || !this.attackClip || !this.hitClip,
-      !this.growlBuffer || !this.attackBuffer)
-    ) {
-      console.warn('GLTF data is not loaded. Call loadGLTF() first.');
-      return null;
-    }
-    console.log('created');
-
     const healthBar = new HealthBar(0.2, 0.02, 100);
+    const audio = new PositionalAudio(this.listener);
 
+    const clonedCollider = this.collider.clone();
     const clonedObject = SkeletonUtils.clone(this.object);
     clonedObject.traverse(child => {
       if (child.isMesh) {
@@ -70,10 +34,6 @@ export class MonsterFactory {
         child.receiveShadow = true;
       }
     });
-
-    const clonedCollider = this.collider.clone();
-
-    const audio = new PositionalAudio(this.listener);
 
     return new Monster(
       clonedObject,

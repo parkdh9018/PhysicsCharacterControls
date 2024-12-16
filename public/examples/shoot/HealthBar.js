@@ -19,7 +19,6 @@ export class HealthBar {
   }
 
   update(health) {
-    console.log(1);
     const percent = (health / this.maxHealth) * 100;
 
     const ctx = this.canvas.getContext('2d');
