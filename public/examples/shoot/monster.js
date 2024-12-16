@@ -147,6 +147,7 @@ class Monster {
     if (distance < 2) this.attack();
     if (!this.actions.attackAction.isRunning() && !this.actions.hitAction.isRunning()) this._moveToTarget(delta * 3);
     this._collideMonsters(monsters);
+    this._collideCharacter();
     this._syncObjectToCollider();
     this._playAnimation(delta);
   }
