@@ -3,9 +3,11 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
 import { Monster } from './Monster.js';
 import { HealthBar } from './HealthBar.js';
+import { Octree } from 'three/addons/math/Octree.js';
 
 export class MonsterFactory {
-  constructor(listener, objectGltf, runClip, dieClip, attackClip, hitClip, growlBuffer, attackBuffer) {
+  constructor(worldObject, listener, objectGltf, runClip, dieClip, attackClip, hitClip, growlBuffer, attackBuffer) {
+    this.woldOctree = new Octree().fromGraphNode(worldObject);
     this.listener = listener;
 
     this.object = objectGltf.scene;
@@ -36,6 +38,7 @@ export class MonsterFactory {
     });
 
     return new Monster(
+      this.woldOctree,
       clonedObject,
       clonedCollider,
       target,

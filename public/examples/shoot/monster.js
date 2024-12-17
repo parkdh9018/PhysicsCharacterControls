@@ -3,6 +3,7 @@ import { AnimationMixer, LoopOnce, Vector3 } from 'three';
 class Monster {
   static index = 0;
   constructor(
+    worldOctree,
     object,
     collider,
     target,
@@ -15,6 +16,10 @@ class Monster {
     attackBuffer,
     healthBar,
   ) {
+    this._worldOctree = worldOctree;
+    this._isGrounded = false;
+    this._fallSpeed = 0;
+    this.step = 5;
     this.id = Monster.index++;
 
     this.object = object;
@@ -102,11 +107,11 @@ class Monster {
 
   _moveToTarget(delta) {
     this._targetPosition.copy(this.target.position);
-    this._targetPosition.y = 0;
+    this._targetPosition.y = this.collider.start.y;
     this.object.lookAt(this._targetPosition);
     const direction = this._targetPosition.sub(this.object.position).normalize();
 
-    this.collider.start.add(direction.multiplyScalar(delta));
+    this.collider.translate(direction.multiplyScalar(delta));
   }
 
   _collide(something) {
@@ -134,23 +139,55 @@ class Monster {
     this._collide(this.target);
   }
 
+  _fall(delta) {
+    if (!this._isGrounded) {
+      this._fallSpeed -= 9.8 * 0.001 * delta;
+      this.collider.translate(this.vector1.set(0, this._fallSpeed, 0));
+    }
+  }
+
+  _collideWorld() {
+    this._isGrounded = false;
+    const collisionResult = this._worldOctree.capsuleIntersect(this.collider);
+    if (!collisionResult) return;
+
+    if (collisionResult.normal.y > 0) {
+      // Player is grounded.
+      this._isGrounded = true;
+      this._fallSpeed = 0;
+    }
+
+    if (collisionResult.depth >= 1e-10) {
+      this.collider.translate(collisionResult.normal.multiplyScalar(collisionResult.depth));
+    }
+  }
+
   _playAnimation(delta) {
     this.mixer.update(delta);
   }
 
   _syncObjectToCollider() {
     this.object.position.copy(this.collider.start);
+    this.object.position.y -= this.collider.radius;
   }
 
   update(delta, monsters) {
     const distance = this.object.position.distanceTo(this.target.position);
     if (distance < 2) this.attack();
     if (!this.actions.attackAction.isRunning() && !this.actions.hitAction.isRunning()) this._moveToTarget(delta * 3);
-    this._collideMonsters(monsters);
-    this._collideCharacter();
+    for (let i = 0; i < this.step; i++) {
+      this._fall(delta / this.step);
+      this._collideWorld();
+
+      this._collideMonsters(monsters);
+      this._collideCharacter();
+    }
     this._syncObjectToCollider();
+
     this._playAnimation(delta);
   }
+
+  dispose() {}
 }
 
 export { Monster };

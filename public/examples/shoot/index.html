@@ -63,6 +63,7 @@
 
       Promise.all([
         // Map
+        gltfLoader.loadAsync('../../assets/models/collision-world.glb'),
         textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_basecolor.jpg'),
         textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_normal.jpg'),
         textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_roughness.jpg'),
@@ -81,6 +82,7 @@
         audioLoader.loadAsync('../../assets/audios/monster-attack.mp3'),
       ]).then(
         ([
+          worldGltf,
           baseTexture,
           normalTexture,
           roughnessTexture,
@@ -95,7 +97,6 @@
           attackBuffer,
         ]) => {
           // Map
-          const worldGeometry = new THREE.CircleGeometry(50, 32);
           const worldMaterial = new THREE.MeshStandardMaterial();
 
           worldMaterial.map = baseTexture;
@@ -103,21 +104,20 @@
           worldMaterial.roughnessMap = roughnessTexture;
           worldMaterial.metalnessMap = metallicTexture;
 
-          baseTexture.wrapS = baseTexture.wrapT = THREE.RepeatWrapping;
-          baseTexture.repeat.set(20, 20);
+          // baseTexture.wrapS = baseTexture.wrapT = THREE.RepeatWrapping;
+          // baseTexture.repeat.set(20, 20);
 
-          normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
-          normalTexture.repeat.set(20, 20);
+          // normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
+          // normalTexture.repeat.set(20, 20);
 
-          roughnessTexture.wrapS = roughnessTexture.wrapT = THREE.RepeatWrapping;
-          roughnessTexture.repeat.set(20, 20);
+          // roughnessTexture.wrapS = roughnessTexture.wrapT = THREE.RepeatWrapping;
+          // roughnessTexture.repeat.set(20, 20);
 
-          metallicTexture.wrapS = metallicTexture.wrapT = THREE.RepeatWrapping;
-          metallicTexture.repeat.set(20, 20);
+          // metallicTexture.wrapS = metallicTexture.wrapT = THREE.RepeatWrapping;
+          // metallicTexture.repeat.set(20, 20);
+          const world = worldGltf.scene;
+          world.material = worldMaterial;
 
-          const world = new THREE.Mesh(worldGeometry, worldMaterial);
-          world.rotation.x = -Math.PI / 2;
-          world.receiveShadow = true;
           scene.add(world);
 
           // Controls
@@ -153,6 +153,7 @@
 
           // Monster
           monsterFactory = new MonsterFactory(
+            world,
             listener,
             monsterGltf,
             runClip,
@@ -164,12 +165,11 @@
           );
 
           monsterInterval = setInterval(() => {
-            if (monsters.length > 20) return;
+            if (monsters.length > 10) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
 
-            monster.object.position.set(Math.random() * 20 - 10, 0, Math.random() * 20 - 10);
             scene.add(monster.object);
             monsters.push(monster);
             monsterObjects.push(monster.object);
@@ -187,7 +187,7 @@
       // Camera
       const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.rotation.order = 'YXZ';
-      camera.position.set(0, 2, 0);
+      camera.position.set(2, 2, 2);
       scene.add(camera);
 
       // Light
