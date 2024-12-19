@@ -1,8 +1,7 @@
 import { AnimationMixer, LoopOnce, Vector3 } from 'three';
 
 class Monster {
-  static index = 0;
-  constructor(
+  constructor({
     worldOctree,
     object,
     collider,
@@ -15,14 +14,14 @@ class Monster {
     growlBuffer,
     attackBuffer,
     healthBar,
-  ) {
+  }) {
     this._worldOctree = worldOctree;
     this._isGrounded = false;
     this._fallSpeed = 0;
     this.step = 5;
-    this.id = Monster.index++;
 
     this.object = object;
+    this.id = this.object.id;
 
     this.health = 100;
     this.healthBar = healthBar;

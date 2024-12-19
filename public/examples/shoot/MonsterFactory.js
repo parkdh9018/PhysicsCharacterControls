@@ -37,20 +37,20 @@ export class MonsterFactory {
       }
     });
 
-    return new Monster(
-      this.woldOctree,
-      clonedObject,
-      clonedCollider,
-      target,
-      this.runClip,
-      this.dieClip,
-      this.attackClip,
-      this.hitClip,
-      audio,
-      this.growlBuffer,
-      this.attackBuffer,
-      healthBar,
-    );
+    return new Monster({
+      worldOctree: this.woldOctree,
+      object: clonedObject,
+      collider: clonedCollider,
+      target: target,
+      runClip: this.runClip,
+      dieClip: this.dieClip,
+      attackClip: this.attackClip,
+      hitClip: this.hitClip,
+      audio: audio,
+      growlBuffer: this.growlBuffer,
+      attackBuffer: this.attackBuffer,
+      healthBar: healthBar,
+    });
   }
 }
 

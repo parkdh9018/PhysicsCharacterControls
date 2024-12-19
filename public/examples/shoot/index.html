@@ -29,15 +29,17 @@
 
       import { FirstPersonPointerLockControls } from 'physics-character-controls';
 
-      import { Monster } from './Monster.js';
-
       import { User } from './User.js';
 
       import { HandGun } from './HandGun.js';
 
       import { Uzi } from './Uzi.js';
 
+      import { Monster } from './Monster.js';
+
       import { MonsterFactory } from './MonsterFactory.js';
+
+      import { MonsterStore } from './MonsterStore.js';
 
       const container = document.getElementById('container');
 
@@ -58,8 +60,7 @@
       // Monsters
       let monsterInterval;
       let monsterFactory;
-      const monsters = [];
-      const monsterObjects = [];
+      let monsterStore = new MonsterStore();
 
       Promise.all([
         // Map
@@ -165,14 +166,13 @@
           );
 
           monsterInterval = setInterval(() => {
-            if (monsters.length > 10) return;
+            if (monsterStore.length > 10) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
 
             scene.add(monster.object);
-            monsters.push(monster);
-            monsterObjects.push(monster.object);
+            monsterStore.add(monster);
           }, 1030);
         },
       );
@@ -243,22 +243,21 @@
         shootAudio.play();
 
         raycaster.setFromCamera(pointer, camera);
-        const intersects = raycaster.intersectObjects(monsterObjects, true);
+        const intersects = raycaster.intersectObjects(monsterStore.objects, true);
 
         if (intersects.length === 0) return;
 
         if (intersects[0].distance > 10) return;
 
-        const monster = monsters.find(monster => monster.object.getObjectById(intersects[0].object.id));
-
+        const monster = monsterStore.findMonsterByObject(intersects[0].object);
+        console.log(monster);
         user.gun.shoot(monster);
         console.log('몬스터 체력!', monster.health);
 
         setTimeout(() => {
           if (monster.health <= 0) {
             scene.remove(monster.object);
-            monsters.splice(monsters.indexOf(monster), 1);
-            monsterObjects.splice(monsterObjects.indexOf(monster.object), 1);
+            monsterStore.delete(monster);
           }
         }, 1000);
       }
@@ -306,8 +305,8 @@
 
         controls && controls.update(delta);
 
-        monsters.forEach(monster => {
-          monster.update(delta, monsters);
+        monsterStore.monsters.forEach(monster => {
+          monster.update(delta, monsterStore.monsters);
         });
 
         renderer.render(scene, camera);
