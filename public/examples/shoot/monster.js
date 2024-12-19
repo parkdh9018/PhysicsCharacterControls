@@ -1,6 +1,6 @@
-import { AnimationMixer, LoopOnce, Vector3 } from 'three';
+import { AnimationMixer, EventDispatcher, LoopOnce, Vector3 } from 'three';
 
-class Monster {
+class Monster extends EventDispatcher {
   constructor({
     worldOctree,
     object,
@@ -15,6 +15,7 @@ class Monster {
     attackBuffer,
     healthBar,
   }) {
+    super();
     this._worldOctree = worldOctree;
     this._isGrounded = false;
     this._fallSpeed = 0;
@@ -42,6 +43,7 @@ class Monster {
       hitAction: this.mixer.clipAction(hitClip),
     };
     this.actions.dieAction.clampWhenFinished = true;
+    this.actions.dieAction.loop = LoopOnce;
     this.actions.attackAction.clampWhenFinished = true;
     this.actions.attackAction.loop = LoopOnce;
 
@@ -51,6 +53,10 @@ class Monster {
 
     this.actions.runAction.play();
     this.mixer.addEventListener('finished', event => {
+      if (event.action === this.actions.dieAction) {
+        this.dispatchEvent({ type: 'die', monster: this });
+        return;
+      }
       this.actions.runAction.reset(); // 상태 초기화
       this.actions.runAction.crossFadeFrom(event.action, 0.5);
       this.actions.runAction.play(); // 다음 애니메이션 재생
@@ -76,6 +82,17 @@ class Monster {
 
   attack() {
     if (!this.actions.attackAction.isRunning()) {
+      this.audio.stop();
+      this.audio.setLoop(false);
+      this.audio.setBuffer(this.buffers.attackBuffer);
+      this.audio.play();
+      this.audio.onEnded = () => {
+        this.audio.stop();
+        this.audio.setLoop(true);
+        this.audio.setBuffer(this.buffers.growlBuffer);
+        this.audio.play();
+      };
+
       this.actions.attackAction.reset();
       this.actions.attackAction.crossFadeFrom(this.actions.runAction, 0.5);
       this.actions.attackAction.play();
@@ -89,17 +106,6 @@ class Monster {
     this.healthBar.update(this.health);
 
     if (this.health <= 0) {
-      this.audio.stop();
-      this.audio.setLoop(false);
-      this.audio.setBuffer(this.buffers.attackBuffer);
-      this.audio.play();
-
-      this.audio.onEnded = () => {
-        this.audio.stop();
-        this.audio.setLoop(true);
-        this.audio.setBuffer(this.buffers.growlBuffer);
-        this.audio.play();
-      };
       this.actions.dieAction.play();
     }
   }

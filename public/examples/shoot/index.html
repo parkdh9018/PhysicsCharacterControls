@@ -165,13 +165,19 @@
             attackBuffer,
           );
 
+          const removeMonster = event => {
+            scene.remove(event.monster.object);
+            monsterStore.delete(event.monster);
+          };
+
           monsterInterval = setInterval(() => {
-            if (monsterStore.length > 10) return;
+            if (monsterStore.monsters.length > 0) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
 
             scene.add(monster.object);
+            monster.addEventListener('die', removeMonster);
             monsterStore.add(monster);
           }, 1030);
         },
@@ -250,16 +256,8 @@
         if (intersects[0].distance > 10) return;
 
         const monster = monsterStore.findMonsterByObject(intersects[0].object);
-        console.log(monster);
         user.gun.shoot(monster);
         console.log('몬스터 체력!', monster.health);
-
-        setTimeout(() => {
-          if (monster.health <= 0) {
-            scene.remove(monster.object);
-            monsterStore.delete(monster);
-          }
-        }, 1000);
       }
 
       window.addEventListener('click', handleClick);
