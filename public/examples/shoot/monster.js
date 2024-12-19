@@ -57,9 +57,11 @@ class Monster extends EventDispatcher {
         this.dispatchEvent({ type: 'die', monster: this });
         return;
       }
-      this.actions.runAction.reset(); // 상태 초기화
-      this.actions.runAction.crossFadeFrom(event.action, 0.5);
-      this.actions.runAction.play(); // 다음 애니메이션 재생
+      if (!this.actions.dieAction.isRunning()) {
+        this.actions.runAction.reset(); // 상태 초기화
+        this.actions.runAction.crossFadeFrom(event.action, 0.2);
+        this.actions.runAction.play(); // 다음 애니메이션 재생
+      }
     });
 
     // audio
@@ -81,22 +83,20 @@ class Monster extends EventDispatcher {
   }
 
   attack() {
-    if (!this.actions.attackAction.isRunning()) {
+    this.audio.stop();
+    this.audio.setLoop(false);
+    this.audio.setBuffer(this.buffers.attackBuffer);
+    this.audio.play();
+    this.audio.onEnded = () => {
       this.audio.stop();
-      this.audio.setLoop(false);
-      this.audio.setBuffer(this.buffers.attackBuffer);
+      this.audio.setLoop(true);
+      this.audio.setBuffer(this.buffers.growlBuffer);
       this.audio.play();
-      this.audio.onEnded = () => {
-        this.audio.stop();
-        this.audio.setLoop(true);
-        this.audio.setBuffer(this.buffers.growlBuffer);
-        this.audio.play();
-      };
+    };
 
-      this.actions.attackAction.reset();
-      this.actions.attackAction.crossFadeFrom(this.actions.runAction, 0.5);
-      this.actions.attackAction.play();
-    }
+    this.actions.attackAction.reset();
+    this.actions.attackAction.crossFadeFrom(this.actions.runAction, 0.5);
+    this.actions.attackAction.play();
   }
 
   hit(damage) {
@@ -145,10 +145,8 @@ class Monster extends EventDispatcher {
   }
 
   _fall(delta) {
-    if (!this._isGrounded) {
-      this._fallSpeed -= 9.8 * 0.001 * delta;
-      this.collider.translate(this.vector1.set(0, this._fallSpeed, 0));
-    }
+    this._fallSpeed -= 9.8 * 0.001 * delta;
+    this.collider.translate(this.vector1.set(0, this._fallSpeed, 0));
   }
 
   _collideWorld() {
@@ -178,10 +176,12 @@ class Monster extends EventDispatcher {
 
   update(delta, monsters) {
     const distance = this.object.position.distanceTo(this.target.position);
-    if (distance < 2) this.attack();
-    if (!this.actions.attackAction.isRunning() && !this.actions.hitAction.isRunning()) this._moveToTarget(delta * 3);
+    if (distance < 2 && !this.actions.attackAction.isRunning()) this.attack();
+    console.log('die', this.actions.dieAction.isRunning());
+    console.log('run', this.actions.runAction.isRunning());
+    if (this.actions.runAction.isRunning()) this._moveToTarget(delta * 3);
     for (let i = 0; i < this.step; i++) {
-      this._fall(delta / this.step);
+      if (!this._isGrounded) this._fall(delta / this.step);
       this._collideWorld();
 
       this._collideMonsters(monsters);
