@@ -171,7 +171,7 @@
           };
 
           monsterInterval = setInterval(() => {
-            if (monsterStore.monsters.length > 0) return;
+            if (monsterStore.monsters.length > 5) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
@@ -239,8 +239,6 @@
       stats.domElement.style.top = '0px';
       container.appendChild(stats.domElement);
 
-      console.log(controls);
-
       const raycaster = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
 
@@ -257,14 +255,14 @@
 
         const monster = monsterStore.findMonsterByObject(intersects[0].object);
         user.gun.shoot(monster);
-        console.log('몬스터 체력!', monster.health);
+        // console.log('몬스터 체력!', monster.health);
       }
 
       window.addEventListener('click', handleClick);
 
       function handleKeyDown(event) {
         if (event.key === 'q') {
-          console.log('새로운 총기 장착 중...');
+          // console.log('새로운 총기 장착 중...');
 
           if (user && user.gun) {
             if (user.gun.name === 'hand_gun') {
@@ -291,7 +289,7 @@
               }
             }
           } else {
-            console.warn('User 또는 총기가 아직 초기화되지 않았습니다.');
+            // console.warn('User 또는 총기가 아직 초기화되지 않았습니다.');
           }
         }
       }

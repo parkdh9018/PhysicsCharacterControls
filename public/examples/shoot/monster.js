@@ -1,4 +1,13 @@
-import { AnimationMixer, EventDispatcher, LoopOnce, Vector3 } from 'three';
+import { AnimationMixer, EventDispatcher, Vector3 } from 'three';
+import {
+  MONSTER_STATE_NAME,
+  MONSTER_EVENTS,
+  StateMachine,
+  RunState,
+  AttackState,
+  DyingState,
+  HurtState,
+} from './StateMachine.js';
 
 class Monster extends EventDispatcher {
   constructor({
@@ -34,47 +43,27 @@ class Monster extends EventDispatcher {
     this.collider = collider;
     this.target = target;
 
-    // animation
     this.mixer = new AnimationMixer(this.object);
-    this.actions = {
-      runAction: this.mixer.clipAction(runClip),
-      dieAction: this.mixer.clipAction(dieClip),
-      attackAction: this.mixer.clipAction(attackClip),
-      hitAction: this.mixer.clipAction(hitClip),
+    this.audio = audio;
+
+    const onEndDying = () => {
+      this.dispatchEvent({ type: 'die', monster: this });
     };
-    this.actions.dieAction.clampWhenFinished = true;
-    this.actions.dieAction.loop = LoopOnce;
-    this.actions.attackAction.clampWhenFinished = true;
-    this.actions.attackAction.loop = LoopOnce;
+    this.onEndDying = onEndDying.bind(this);
 
-    this.actions.hitAction.clampWhenFinished = true;
-    this.actions.hitAction.timeScale = 3;
-    this.actions.hitAction.loop = LoopOnce;
+    this.states = {
+      [MONSTER_STATE_NAME.RUN]: new RunState(this.mixer.clipAction(runClip), audio, growlBuffer),
+      [MONSTER_STATE_NAME.HURT]: new HurtState(this.mixer.clipAction(hitClip), audio, growlBuffer),
+      [MONSTER_STATE_NAME.ATTACK]: new AttackState(this.mixer.clipAction(attackClip), audio, attackBuffer),
+      [MONSTER_STATE_NAME.DYING]: new DyingState(this.mixer.clipAction(dieClip), audio, growlBuffer, this.onEndDying),
+    };
+    this.stateMachine = new StateMachine(this.states?.[MONSTER_STATE_NAME.RUN], this.states, this.mixer, this.audio);
 
-    this.actions.runAction.play();
     this.mixer.addEventListener('finished', event => {
-      if (event.action === this.actions.dieAction) {
-        this.dispatchEvent({ type: 'die', monster: this });
-        return;
-      }
-      if (!this.actions.dieAction.isRunning()) {
-        this.actions.runAction.reset(); // 상태 초기화
-        this.actions.runAction.crossFadeFrom(event.action, 0.2);
-        this.actions.runAction.play(); // 다음 애니메이션 재생
+      if (event.action === this.stateMachine.state.action) {
+        this.stateMachine.handleEvent(MONSTER_EVENTS.ON_END_STATE);
       }
     });
-
-    // audio
-    this.audio = audio;
-    this.buffers = {
-      growlBuffer: growlBuffer,
-      attackBuffer: attackBuffer,
-    };
-
-    this.audio.setBuffer(this.growlBuffer);
-    this.audio.setRefDistance(5);
-    this.audio.setLoop(true);
-    this.audio.play();
 
     this._targetPosition = this.target.position.clone();
 
@@ -83,30 +72,16 @@ class Monster extends EventDispatcher {
   }
 
   attack() {
-    this.audio.stop();
-    this.audio.setLoop(false);
-    this.audio.setBuffer(this.buffers.attackBuffer);
-    this.audio.play();
-    this.audio.onEnded = () => {
-      this.audio.stop();
-      this.audio.setLoop(true);
-      this.audio.setBuffer(this.buffers.growlBuffer);
-      this.audio.play();
-    };
-
-    this.actions.attackAction.reset();
-    this.actions.attackAction.crossFadeFrom(this.actions.runAction, 0.5);
-    this.actions.attackAction.play();
+    this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
   }
 
   hit(damage) {
+    this.stateMachine.handleEvent(MONSTER_EVENTS.GET_SHOT);
     this.health -= damage;
-    this.actions.hitAction.reset();
-    this.actions.hitAction.play();
     this.healthBar.update(this.health);
 
     if (this.health <= 0) {
-      this.actions.dieAction.play();
+      this.stateMachine.handleEvent(MONSTER_EVENTS.EMPTY_HEALTH);
     }
   }
 
@@ -176,10 +151,8 @@ class Monster extends EventDispatcher {
 
   update(delta, monsters) {
     const distance = this.object.position.distanceTo(this.target.position);
-    if (distance < 2 && !this.actions.attackAction.isRunning()) this.attack();
-    console.log('die', this.actions.dieAction.isRunning());
-    console.log('run', this.actions.runAction.isRunning());
-    if (this.actions.runAction.isRunning()) this._moveToTarget(delta * 3);
+    if (distance < 2) this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
+    if (this.stateMachine.state.name === MONSTER_STATE_NAME.RUN) this._moveToTarget(delta * 3);
     for (let i = 0; i < this.step; i++) {
       if (!this._isGrounded) this._fall(delta / this.step);
       this._collideWorld();
