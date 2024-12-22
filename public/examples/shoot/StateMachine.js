@@ -1,4 +1,4 @@
-import { LoopOnce } from 'three';
+import { EventDispatcher, LoopOnce, LoopRepeat } from 'three';
 
 const MONSTER_STATE_NAME = {
   RUN: 'RUN',
@@ -16,67 +16,135 @@ const MONSTER_EVENTS = {
 };
 
 class StateMachine {
-  static DEAD_STATE = 'DEAD_STATE';
-  constructor(defaultState, states, mixer, audio) {
+  constructor(defaultState, states) {
     this.state = defaultState;
     this.states = states;
-    this.mixer = mixer;
-    this.audio = audio;
 
-    this.state.enter(null, this.audio);
+    this.state.enter();
   }
   handleEvent(event) {
     const nextStateName = this.state.handleEvent(event);
+    if (nextStateName === null) return;
 
-    if (nextStateName !== null) {
-      this.state.exit();
-      const nextState = this.states?.[nextStateName];
-      if (nextState) {
-        nextState.enter(this.state, this.audio);
-        this.state = nextState;
-      }
-    }
+    this.state.exit();
+    const nextState = this.states?.[nextStateName];
+    if (!nextState) return;
+
+    nextState.enter();
+    this.state = nextState;
   }
 }
 
-class State {
-  constructor(animationAction, audio, audioBuffer, onEndState = () => {}) {
+class State extends EventDispatcher {
+  constructor(action, audio, buffer) {
+    super();
     this.name = null;
-    this.action = animationAction;
-    this.action.clampWhenFinished = true;
+    this.action = action;
     this.audio = audio;
-    this.audioBuffer = audioBuffer;
-    this.onEndState = onEndState;
-    this.audioLoop = false;
-    this.fadeInDuration = 0;
-    this.fadeOutDuration = 0;
+    this.buffer = buffer;
+
+    this.enterCallbacks = [];
+    this.updateCallbacks = [];
+    this.exitCallbacks = [];
+
+    this.timeOutId = null;
+    this.stateDuration = null;
   }
+
+  addDuration(duration) {
+    const dispatchEndState = () => {
+      this.dispatchEvent({ type: 'endState', stateName: this.name });
+    };
+
+    const setTimeOutCallback = () => {
+      this.timeOutId = setTimeout(dispatchEndState, duration);
+    };
+
+    const clearTimeOutCallback = () => {
+      if (this.timeOutId) clearTimeout(this.timeOutId);
+    };
+
+    this.addEnterCallback(setTimeOutCallback.bind(this));
+    this.addExitCallback(clearTimeOutCallback.bind(this));
+  }
+
+  addAction({
+    action,
+    fadeInDuration = null,
+    fadeOutDuration = null,
+    loop = LoopRepeat,
+    clampWhenFinished = true,
+    timeScale = 1,
+  }) {
+    action.loop = loop;
+    action.clampWhenFinished = clampWhenFinished;
+    action.timeScale = timeScale;
+
+    if (loop == LoopOnce) {
+      this.addDuration((action.getClip().duration / action.timeScale) * 1000);
+    }
+
+    this.addEnterCallback(() => {
+      action.reset();
+      if (fadeInDuration) action.fadeIn(fadeInDuration);
+      action.play();
+    });
+
+    this.addExitCallback(() => {
+      if (fadeOutDuration) action.fadeOut(fadeOutDuration);
+    });
+  }
+
+  addAudio(audio, buffer, loop) {
+    this.addEnterCallback(() => {
+      audio.stop();
+      audio.setBuffer(buffer);
+      audio.setLoop(loop);
+      audio.play();
+    });
+  }
+
+  addEnterCallback(callback) {
+    this.enterCallbacks.push(callback);
+  }
+
+  addUpdateCallback(callback) {
+    this.updateCallbacks.push(callback);
+  }
+
+  addExitCallback(callback) {
+    this.exitCallbacks.push(callback);
+  }
+
   handleEvent(event) {
     console.log(event);
   }
-  enter() {
-    this.action.reset();
-    this.action.fadeIn(this.fadeInDuration);
-    this.action.play();
 
-    this.audio.setLoop(this.audioLoop);
-    this.audio.stop();
-    this.audio.setBuffer(this.audioBuffer);
-    this.audio.play();
+  enter() {
+    this.enterCallbacks.forEach(callback => {
+      callback();
+    });
   }
+
+  update(delta) {
+    this.updateCallbacks.forEach(callback => {
+      callback(delta);
+    });
+  }
+
   exit() {
-    this.onEndState();
-    this.action.fadeOut(this.fadeOutDuration);
+    this.exitCallbacks.forEach(callback => {
+      callback();
+    });
   }
 }
 
 class RunState extends State {
-  constructor(animationAction, audio, audioBuffer) {
-    super(animationAction, audio, audioBuffer);
+  constructor(action, audio, buffer) {
+    super(action, audio, buffer);
     this.name = MONSTER_STATE_NAME.RUN;
-    this.fadeInDuration = 0.2;
-    this.fadeOutDuration = 1;
-    this.audioLoop = true;
+    this.addAudio(this.audio, this.buffer, true);
+    this.addAction({ action: this.action, fadeInDuration: 0.5, fadeOutDuration: 0.5 });
   }
   handleEvent(event) {
     switch (event) {
@@ -93,15 +161,17 @@ class RunState extends State {
 }
 
 class HurtState extends State {
-  constructor(animationAction, audio, audioBuffer) {
-    super(animationAction, audio, audioBuffer);
+  constructor(action, audio, buffer) {
+    super(action, audio, buffer);
     this.name = MONSTER_STATE_NAME.HURT;
-    this.action.loop = LoopOnce;
-    this.action.timeScale = 3;
-
-    this.fadeInDuration = 0.2;
-    this.fadeOutDuration = 1;
-    this.audioLoop = false;
+    this.addAudio(this.audio, this.buffer, false);
+    this.addAction({
+      action: this.action,
+      fadeInDuration: 0.2,
+      fadeOutDuration: 0.5,
+      loop: LoopOnce,
+      timeScale: 3,
+    });
   }
   handleEvent(event) {
     switch (event) {
@@ -118,14 +188,11 @@ class HurtState extends State {
 }
 
 class AttackState extends State {
-  constructor(animationAction, audio, audioBuffer) {
-    super(animationAction, audio, audioBuffer);
+  constructor(action, audio, buffer) {
+    super(action, audio, buffer);
     this.name = MONSTER_STATE_NAME.ATTACK;
-    this.action.loop = LoopOnce;
-
-    this.fadeInDuration = 0.2;
-    this.fadeOutDuration = 1;
-    this.audioLoop = false;
+    this.addAudio(this.audio, this.buffer, false);
+    this.addAction({ action: this.action, fadeInDuration: 0.5, fadeOutDuration: 0.5, loop: LoopOnce });
   }
   handleEvent(event) {
     switch (event) {
@@ -142,14 +209,11 @@ class AttackState extends State {
 }
 
 class DyingState extends State {
-  constructor(animationAction, audio, audioBuffer, onEndState) {
-    super(animationAction, audio, audioBuffer, onEndState);
+  constructor(action, audio, buffer) {
+    super(action, audio, buffer);
     this.name = MONSTER_STATE_NAME.DYING;
-    this.action.loop = LoopOnce;
-
-    this.fadeInDuration = 1;
-    this.fadeOutDuration = 30;
-    this.audioLoop = false;
+    this.addAudio(this.audio, this.buffer, false);
+    this.addAction({ action: this.action, fadeInDuration: 0.5, fadeOutDuration: 30, loop: LoopOnce });
   }
   handleEvent(event) {
     switch (event) {

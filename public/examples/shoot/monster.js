@@ -46,33 +46,35 @@ class Monster extends EventDispatcher {
     this.mixer = new AnimationMixer(this.object);
     this.audio = audio;
 
-    const onEndDying = () => {
+    const runState = new RunState(this.mixer.clipAction(runClip), this.audio, growlBuffer);
+    const hurtState = new HurtState(this.mixer.clipAction(hitClip), this.audio, growlBuffer);
+    const attackState = new AttackState(this.mixer.clipAction(attackClip), this.audio, attackBuffer);
+    const dyingState = new DyingState(this.mixer.clipAction(dieClip), this.audio, growlBuffer);
+
+    runState.addUpdateCallback(this.moveToTarget.bind(this));
+    dyingState.addExitCallback(() => {
       this.dispatchEvent({ type: 'die', monster: this });
-    };
-    this.onEndDying = onEndDying.bind(this);
+    });
 
     this.states = {
-      [MONSTER_STATE_NAME.RUN]: new RunState(this.mixer.clipAction(runClip), audio, growlBuffer),
-      [MONSTER_STATE_NAME.HURT]: new HurtState(this.mixer.clipAction(hitClip), audio, growlBuffer),
-      [MONSTER_STATE_NAME.ATTACK]: new AttackState(this.mixer.clipAction(attackClip), audio, attackBuffer),
-      [MONSTER_STATE_NAME.DYING]: new DyingState(this.mixer.clipAction(dieClip), audio, growlBuffer, this.onEndDying),
+      [MONSTER_STATE_NAME.RUN]: runState,
+      [MONSTER_STATE_NAME.HURT]: hurtState,
+      [MONSTER_STATE_NAME.ATTACK]: attackState,
+      [MONSTER_STATE_NAME.DYING]: dyingState,
     };
-    this.stateMachine = new StateMachine(this.states?.[MONSTER_STATE_NAME.RUN], this.states, this.mixer, this.audio);
 
-    this.mixer.addEventListener('finished', event => {
-      if (event.action === this.stateMachine.state.action) {
+    this.stateMachine = new StateMachine(this.states?.[MONSTER_STATE_NAME.RUN], this.states);
+
+    for (let name in this.states) {
+      this.states?.[name].addEventListener('endState', () => {
         this.stateMachine.handleEvent(MONSTER_EVENTS.ON_END_STATE);
-      }
-    });
+      });
+    }
 
     this._targetPosition = this.target.position.clone();
 
     this.vector1 = new Vector3();
     this.vector2 = new Vector3();
-  }
-
-  attack() {
-    this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
   }
 
   hit(damage) {
@@ -85,7 +87,7 @@ class Monster extends EventDispatcher {
     }
   }
 
-  _moveToTarget(delta) {
+  moveToTarget(delta) {
     this._targetPosition.copy(this.target.position);
     this._targetPosition.y = this.collider.start.y;
     this.object.lookAt(this._targetPosition);
@@ -152,7 +154,8 @@ class Monster extends EventDispatcher {
   update(delta, monsters) {
     const distance = this.object.position.distanceTo(this.target.position);
     if (distance < 2) this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
-    if (this.stateMachine.state.name === MONSTER_STATE_NAME.RUN) this._moveToTarget(delta * 3);
+    this.stateMachine.state.update(delta);
+
     for (let i = 0; i < this.step; i++) {
       if (!this._isGrounded) this._fall(delta / this.step);
       this._collideWorld();
