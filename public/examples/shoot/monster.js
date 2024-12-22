@@ -1,4 +1,4 @@
-import { AnimationMixer, EventDispatcher, Vector3 } from 'three';
+import { AnimationMixer, EventDispatcher, Mesh, MeshBasicMaterial, Sphere, SphereGeometry, Vector3 } from 'three';
 import {
   MONSTER_STATE_NAME,
   MONSTER_EVENTS,
@@ -41,6 +41,13 @@ class Monster extends EventDispatcher {
     this.damage = 5;
 
     this.collider = collider;
+    this.handBone = object.getObjectByName('mixamorigRightHand');
+    this.attackCollider = new Sphere();
+    this.attackCollider.radius = 0.2;
+    this.sphereHelper = createSphereHelper(this.attackCollider);
+
+    // console.log(handBone);
+
     this.target = target;
 
     this.mixer = new AnimationMixer(this.object);
@@ -152,8 +159,10 @@ class Monster extends EventDispatcher {
   }
 
   update(delta, monsters) {
+    this.handBone.getWorldPosition(this.attackCollider.center);
+    this.sphereHelper.position.copy(this.attackCollider.center);
     const distance = this.object.position.distanceTo(this.target.position);
-    if (distance < 2) this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
+    if (distance < 1.8) this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
     this.stateMachine.state.update(delta);
 
     for (let i = 0; i < this.step; i++) {
@@ -169,6 +178,22 @@ class Monster extends EventDispatcher {
   }
 
   dispose() {}
+}
+
+function createSphereHelper(sphere, color = 0xff0000) {
+  const center = sphere.center;
+  const radius = sphere.radius;
+  const geometry = new SphereGeometry(radius, 16, 16); // 구체의 세그먼트 수 조정 가능
+  const material = new MeshBasicMaterial({
+    color: color,
+    wireframe: true, // Wireframe으로 표시
+  });
+  const sphereHelper = new Mesh(geometry, material);
+
+  // 구체 위치를 설정
+  sphereHelper.position.copy(center);
+
+  return sphereHelper;
 }
 
 export { Monster };

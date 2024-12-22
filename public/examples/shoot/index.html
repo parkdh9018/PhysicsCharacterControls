@@ -171,12 +171,14 @@
           };
 
           monsterInterval = setInterval(() => {
-            if (monsterStore.monsters.length > 5) return;
+            if (monsterStore.monsters.length > 0) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
 
             scene.add(monster.object);
+            scene.add(monster.sphereHelper);
+
             monster.addEventListener('die', removeMonster);
             monsterStore.add(monster);
           }, 1030);
