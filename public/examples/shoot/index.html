@@ -167,17 +167,19 @@
 
           const removeMonster = event => {
             scene.remove(event.monster.object);
+            scene.remove(event.monster.boxHelper);
             monsterStore.delete(event.monster);
           };
 
           monsterInterval = setInterval(() => {
-            if (monsterStore.monsters.length > 0) return;
+            if (monsterStore.monsters.length > 5) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
 
+            console.log(monster.boxHelper);
             scene.add(monster.object);
-            scene.add(monster.sphereHelper);
+            scene.add(monster.boxHelper);
 
             monster.addEventListener('die', removeMonster);
             monsterStore.add(monster);

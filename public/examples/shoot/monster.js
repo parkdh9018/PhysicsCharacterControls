@@ -1,4 +1,14 @@
-import { AnimationMixer, EventDispatcher, Mesh, MeshBasicMaterial, Sphere, SphereGeometry, Vector3 } from 'three';
+import {
+  AnimationMixer,
+  Box3,
+  Box3Helper,
+  EventDispatcher,
+  Mesh,
+  MeshBasicMaterial,
+  Sphere,
+  SphereGeometry,
+  Vector3,
+} from 'three';
 import {
   MONSTER_STATE_NAME,
   MONSTER_EVENTS,
@@ -40,11 +50,18 @@ class Monster extends EventDispatcher {
 
     this.damage = 5;
 
+    this.vector1 = new Vector3();
+    this.vector2 = new Vector3();
+
     this.collider = collider;
     this.handBone = object.getObjectByName('mixamorigRightHand');
-    this.attackCollider = new Sphere();
-    this.attackCollider.radius = 0.2;
-    this.sphereHelper = createSphereHelper(this.attackCollider);
+
+    this.attackCollider = new Box3();
+    this.lastAttackTime = 0;
+    this.throttleTime = 600; // 시간(ms)
+    // this.attackCollider.setFromCenterAndSize(this.vector2.set(0, 0, 0), this.vector1.set(0.5, 0.5, 0.5));
+
+    this.boxHelper = new Box3Helper(this.attackCollider, 0xff0000);
 
     // console.log(handBone);
 
@@ -59,6 +76,7 @@ class Monster extends EventDispatcher {
     const dyingState = new DyingState(this.mixer.clipAction(dieClip), this.audio, growlBuffer);
 
     runState.addUpdateCallback(this.moveToTarget.bind(this));
+    attackState.addUpdateCallback(this.attack.bind(this));
     dyingState.addExitCallback(() => {
       this.dispatchEvent({ type: 'die', monster: this });
     });
@@ -79,9 +97,6 @@ class Monster extends EventDispatcher {
     }
 
     this._targetPosition = this.target.position.clone();
-
-    this.vector1 = new Vector3();
-    this.vector2 = new Vector3();
   }
 
   hit(damage) {
@@ -94,9 +109,19 @@ class Monster extends EventDispatcher {
     }
   }
 
+  attack() {
+    const time = this.states?.[MONSTER_STATE_NAME.ATTACK].action.time;
+    if (1 < time && time < 1.5) {
+      const currentTime = Date.now();
+      if (currentTime - this.lastAttackTime < this.throttleTime) return;
+      if (!this.target.collider.intersectsBox(this.attackCollider)) return;
+      this.target.hit(this.damage);
+      this.lastAttackTime = currentTime;
+    }
+  }
   moveToTarget(delta) {
     this._targetPosition.copy(this.target.position);
-    this._targetPosition.y = this.collider.start.y;
+    this._targetPosition.y = this.collider.start.y - this.collider.radius;
     this.object.lookAt(this._targetPosition);
     const direction = this._targetPosition.sub(this.object.position).normalize();
 
@@ -159,8 +184,10 @@ class Monster extends EventDispatcher {
   }
 
   update(delta, monsters) {
-    this.handBone.getWorldPosition(this.attackCollider.center);
-    this.sphereHelper.position.copy(this.attackCollider.center);
+    // this.handBone.updateMatrixWorld();
+    // this.attackCollider.applyMatrix4(this.handBone.worldMatrix);
+    this.handBone.getWorldPosition(this.vector1);
+    this.attackCollider.setFromCenterAndSize(this.vector1, this.vector2.set(0.2, 0.2, 0.2));
     const distance = this.object.position.distanceTo(this.target.position);
     if (distance < 1.8) this.stateMachine.handleEvent(MONSTER_EVENTS.CLOSE_TO_TARGET);
     this.stateMachine.state.update(delta);
@@ -183,7 +210,7 @@ class Monster extends EventDispatcher {
 function createSphereHelper(sphere, color = 0xff0000) {
   const center = sphere.center;
   const radius = sphere.radius;
-  const geometry = new SphereGeometry(radius, 16, 16); // 구체의 세그먼트 수 조정 가능
+  const geometry = new SphereGeometry(radius, 8, 8); // 구체의 세그먼트 수 조정 가능
   const material = new MeshBasicMaterial({
     color: color,
     wireframe: true, // Wireframe으로 표시
