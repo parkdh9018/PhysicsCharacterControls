@@ -165,22 +165,13 @@
             attackBuffer,
           );
 
-          const removeMonster = event => {
-            scene.remove(event.monster.object);
-            scene.remove(event.monster.boxHelper);
-            monsterStore.delete(event.monster);
-          };
-
           monsterInterval = setInterval(() => {
             if (monsterStore.monsters.length > 5) return;
 
             const monster = monsterFactory.createMonster(user);
             if (!monster) return;
 
-            scene.add(monster.object);
-            scene.add(monster.boxHelper);
-
-            monster.addEventListener('die', removeMonster);
+            monster.addToScene(scene);
             monsterStore.add(monster);
           }, 1030);
         },

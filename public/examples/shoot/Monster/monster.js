@@ -1,14 +1,4 @@
-import {
-  AnimationMixer,
-  Box3,
-  Box3Helper,
-  EventDispatcher,
-  Mesh,
-  MeshBasicMaterial,
-  Sphere,
-  SphereGeometry,
-  Vector3,
-} from 'three';
+import { AnimationMixer, Box3, Box3Helper, EventDispatcher, Vector3 } from 'three';
 import {
   MONSTER_STATE_NAME,
   MONSTER_EVENTS,
@@ -19,7 +9,7 @@ import {
   HurtState,
 } from '../Common/StateMachine.js';
 
-class Monster extends EventDispatcher {
+export class Monster extends EventDispatcher {
   constructor({ worldOctree, object, collider, target, clip, audio, buffer, healthBar }) {
     super();
     this.object = object;
@@ -100,7 +90,7 @@ class Monster extends EventDispatcher {
     const time = this.states?.[MONSTER_STATE_NAME.ATTACK].action.time;
     if (1 < time && time < 1.5) {
       const currentTime = Date.now();
-      if (currentTime - this.lastAttackTime < this.throttleTime) return;
+      if (currentTime - this.lastAttackTime < this.attackThrottleTime) return;
       if (!this.target.collider.intersectsBox(this.attackCollider)) return;
       this.target.hit(this.damage);
       this.lastAttackTime = currentTime;
@@ -190,4 +180,16 @@ class Monster extends EventDispatcher {
   }
 
   dispose() {}
+
+  remove() {
+    this.object.removeFromParent();
+    this.boxHelper.removeFromParent();
+
+    this.dispose();
+  }
+
+  addToScene(scene) {
+    scene.add(this.object);
+    scene.add(this.boxHelper);
+  }
 }
