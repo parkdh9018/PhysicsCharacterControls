@@ -20,8 +20,6 @@ export class MonsterFactory {
 
     this.growlBuffer = growlBuffer;
     this.attackBuffer = attackBuffer;
-
-    this.monsters = [];
   }
 
   createMonster(target) {
