@@ -183,10 +183,7 @@
       // XR controllers
       const raycaster = new THREE.Raycaster();
 
-      function onSelectStart(event) {
-        const symbols = Object.getOwnPropertySymbols(event.data);
-        console.log(event.data[symbols[0]].impl.handedness);
-        console.log(event);
+      function onSelectStart() {
         shootAudio.stop();
         shootAudio.play();
 
