@@ -179,7 +179,9 @@ export class Monster extends EventDispatcher {
     this._playAnimation(delta);
   }
 
-  dispose() {}
+  dispose() {
+    this.mixer.uncacheRoot(this.object);
+  }
 
   remove() {
     this.object.removeFromParent();
