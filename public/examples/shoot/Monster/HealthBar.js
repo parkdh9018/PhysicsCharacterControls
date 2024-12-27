@@ -21,11 +21,10 @@ export class HealthBar {
   update(health) {
     const percent = (health / this.maxHealth) * 100;
 
-    const ctx = this.canvas.getContext('2d');
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, 100, 10);
+    this.ctx.fillStyle = 'white';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = 'red';
-    this.ctx.fillRect(0, 0, percent, 10);
+    this.ctx.fillRect(0, 0, percent, this.canvas.height);
     this.texture.needsUpdate = true;
   }
 
