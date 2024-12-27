@@ -17,7 +17,7 @@ import {
   AttackState,
   DyingState,
   HurtState,
-} from './StateMachine.js';
+} from '../Common/StateMachine.js';
 
 class Monster extends EventDispatcher {
   constructor({

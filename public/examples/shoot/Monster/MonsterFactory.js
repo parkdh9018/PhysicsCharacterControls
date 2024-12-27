@@ -2,7 +2,7 @@ import { Box3, PositionalAudio, Vector3 } from 'three';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
 import { Monster } from './Monster.js';
-import { HealthBar } from './HealthBar.js';
+import { HealthBar } from '../Common/HealthBar.js';
 import { Octree } from 'three/addons/math/Octree.js';
 
 export class MonsterFactory {

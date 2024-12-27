@@ -29,17 +29,17 @@
 
       import { FirstPersonPointerLockControls } from 'physics-character-controls';
 
-      import { User } from './User.js';
+      import { User } from './User//User.js';
 
-      import { HandGun } from './HandGun.js';
+      import { HandGun } from './User/HandGun.js';
 
-      import { Uzi } from './Uzi.js';
+      import { Uzi } from './User/Uzi.js';
 
-      import { Monster } from './Monster.js';
+      import { Monster } from './Monster/Monster.js';
 
-      import { MonsterFactory } from './MonsterFactory.js';
+      import { MonsterFactory } from './Monster/MonsterFactory.js';
 
-      import { MonsterStore } from './MonsterStore.js';
+      import { MonsterStore } from './Monster/MonsterStore.js';
 
       const container = document.getElementById('container');
 
@@ -64,23 +64,23 @@
 
       Promise.all([
         // Map
-        gltfLoader.loadAsync('../../assets/models/collision-world.glb'),
-        textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_basecolor.jpg'),
-        textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_normal.jpg'),
-        textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_roughness.jpg'),
-        textureLoader.load('../../assets/textures/Sci_fi_Metal_Panel_007_metallic.jpg'),
+        gltfLoader.loadAsync('../assets/models/collision-world.glb'),
+        textureLoader.load('../assets/textures/Sci_fi_Metal_Panel_007_basecolor.jpg'),
+        textureLoader.load('../assets/textures/Sci_fi_Metal_Panel_007_normal.jpg'),
+        textureLoader.load('../assets/textures/Sci_fi_Metal_Panel_007_roughness.jpg'),
+        textureLoader.load('../assets/textures/Sci_fi_Metal_Panel_007_metallic.jpg'),
 
         // Gun
-        gltfLoader.loadAsync('../../assets/models/hand_gun.glb'),
+        gltfLoader.loadAsync('../assets/models/hand_gun.glb'),
 
         // Monster
-        gltfLoader.loadAsync('../../assets/models/monster.glb'),
-        gltfLoader.loadAsync('../../assets/animations/monster_run.glb'),
-        gltfLoader.loadAsync('../../assets/animations/monster_die.glb'),
-        gltfLoader.loadAsync('../../assets/animations/monster_attack.glb'),
-        gltfLoader.loadAsync('../../assets/animations/monster_hit.glb'),
-        audioLoader.loadAsync('../../assets/audios/monster-growl.mp3'),
-        audioLoader.loadAsync('../../assets/audios/monster-attack.mp3'),
+        gltfLoader.loadAsync('../assets/models/monster.glb'),
+        gltfLoader.loadAsync('../assets/animations/monster_run.glb'),
+        gltfLoader.loadAsync('../assets/animations/monster_die.glb'),
+        gltfLoader.loadAsync('../assets/animations/monster_attack.glb'),
+        gltfLoader.loadAsync('../assets/animations/monster_hit.glb'),
+        audioLoader.loadAsync('../assets/audios/monster-growl.mp3'),
+        audioLoader.loadAsync('../assets/audios/monster-attack.mp3'),
       ]).then(
         ([
           worldGltf,
@@ -226,11 +226,11 @@
       scene.add(bgmAudio);
       scene.add(shootAudio);
 
-      audioLoader.load('../../assets/audios/shoot.mp3', buffer => {
+      audioLoader.load('../assets/audios/shoot.mp3', buffer => {
         shootAudio.setBuffer(buffer);
         shootAudio.setVolume(0.5);
       });
-      audioLoader.load('../../assets/audios/horror-bgm.mp3', buffer => {
+      audioLoader.load('../assets/audios/horror-bgm.mp3', buffer => {
         bgmAudio.setBuffer(buffer);
         bgmAudio.setVolume(0.5);
         bgmAudio.setLoop(true);
