@@ -22,35 +22,38 @@ import {
 class Monster extends EventDispatcher {
   constructor({ worldOctree, object, collider, target, clip, audio, buffer, healthBar }) {
     super();
+    this.object = object;
+    this.id = this.object.id;
+    this.target = target;
+    this.damage = 5;
+
+    // Pysics Setting
     this._worldOctree = worldOctree;
     this._isGrounded = false;
     this._fallSpeed = 0;
     this.step = 5;
 
+    // Reusable Vectors
     this.vector1 = new Vector3();
     this.vector2 = new Vector3();
 
-    this.object = object;
-    this.id = this.object.id;
-
+    // Health Bar
     this.health = 100;
     this.healthBar = healthBar;
     this.healthBar.setPositionByObject(this.object, this.vector1.set(0, 0, 0));
     this.object.add(healthBar.object);
 
-    this.damage = 5;
-
+    // Colliders
     this.collider = collider;
     this.handBone = object.getObjectByName('mixamorigRightHand');
-
     this.attackCollider = new Box3();
-    this.lastAttackTime = 0;
-    this.throttleTime = 600; // 시간(ms)
-
     this.boxHelper = new Box3Helper(this.attackCollider, 0xff0000);
 
-    this.target = target;
+    // Attack Throttle
+    this.lastAttackTime = 0;
+    this.attackThrottleTime = 600;
 
+    // State Machine
     this.mixer = new AnimationMixer(this.object);
     this.audio = audio;
 
