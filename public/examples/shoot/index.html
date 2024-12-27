@@ -320,6 +320,7 @@
         controls && controls.disconnect();
 
         monsterInterval && clearInterval(monsterInterval);
+        monsterFactory.dispose();
 
         scene.traverse(object => {
           if (object.isMesh) {

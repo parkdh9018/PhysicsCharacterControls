@@ -50,6 +50,10 @@ export class MonsterFactory {
       healthBar: healthBar,
     });
   }
+  dispose() {
+    this.object.geometry.dispose();
+    this.object.material.dispose();
+  }
 }
 
 export function createCollider(object) {
