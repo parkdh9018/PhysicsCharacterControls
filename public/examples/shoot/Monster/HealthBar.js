@@ -28,4 +28,9 @@ export class HealthBar {
     this.ctx.fillRect(0, 0, percent, 10);
     this.texture.needsUpdate = true;
   }
+
+  despose() {
+    this.texture.dispose();
+    this.material.dispose();
+  }
 }
