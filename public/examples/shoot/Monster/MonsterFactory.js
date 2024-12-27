@@ -13,13 +13,17 @@ export class MonsterFactory {
     this.object = objectGltf.scene;
     this.collider = createCollider(this.object);
 
-    this.runClip = runClip.animations[0];
-    this.dieClip = dieClip.animations[0];
-    this.attackClip = attackClip.animations[0];
-    this.hitClip = hitClip.animations[0];
+    this.clip = {
+      run: runClip.animations[0],
+      die: dieClip.animations[0],
+      attack: attackClip.animations[0],
+      hit: hitClip.animations[0],
+    };
 
-    this.growlBuffer = growlBuffer;
-    this.attackBuffer = attackBuffer;
+    this.buffer = {
+      growl: growlBuffer,
+      attack: attackBuffer,
+    };
   }
 
   createMonster(target) {
@@ -40,13 +44,9 @@ export class MonsterFactory {
       object: clonedObject,
       collider: clonedCollider,
       target: target,
-      runClip: this.runClip,
-      dieClip: this.dieClip,
-      attackClip: this.attackClip,
-      hitClip: this.hitClip,
+      clip: this.clip,
       audio: audio,
-      growlBuffer: this.growlBuffer,
-      attackBuffer: this.attackBuffer,
+      buffer: this.buffer,
       healthBar: healthBar,
     });
   }

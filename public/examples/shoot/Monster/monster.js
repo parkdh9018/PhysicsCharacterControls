@@ -20,20 +20,7 @@ import {
 } from '../Common/StateMachine.js';
 
 class Monster extends EventDispatcher {
-  constructor({
-    worldOctree,
-    object,
-    collider,
-    target,
-    runClip,
-    dieClip,
-    attackClip,
-    hitClip,
-    audio,
-    growlBuffer,
-    attackBuffer,
-    healthBar,
-  }) {
+  constructor({ worldOctree, object, collider, target, clip, audio, buffer, healthBar }) {
     super();
     this._worldOctree = worldOctree;
     this._isGrounded = false;
@@ -70,10 +57,10 @@ class Monster extends EventDispatcher {
     this.mixer = new AnimationMixer(this.object);
     this.audio = audio;
 
-    const runState = new RunState(this.mixer.clipAction(runClip), this.audio, growlBuffer);
-    const hurtState = new HurtState(this.mixer.clipAction(hitClip), this.audio, growlBuffer);
-    const attackState = new AttackState(this.mixer.clipAction(attackClip), this.audio, attackBuffer);
-    const dyingState = new DyingState(this.mixer.clipAction(dieClip), this.audio, growlBuffer);
+    const runState = new RunState(this.mixer.clipAction(clip.run), this.audio, buffer.growl);
+    const hurtState = new HurtState(this.mixer.clipAction(clip.hit), this.audio, buffer.growl);
+    const attackState = new AttackState(this.mixer.clipAction(clip.attack), this.audio, buffer.attack);
+    const dyingState = new DyingState(this.mixer.clipAction(clip.die), this.audio, buffer.growl);
 
     runState.addUpdateCallback(this.moveToTarget.bind(this));
     attackState.addUpdateCallback(this.attack.bind(this));
