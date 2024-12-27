@@ -273,7 +273,7 @@
                 const newGun = new Uzi(loadedUzi.clone());
                 user.equipGun(newGun);
               } else {
-                gltfLoader.load('../../assets/models/uzi.glb', gltf => {
+                gltfLoader.load('../assets/models/uzi.glb', gltf => {
                   loadedUzi = gltf.scene;
                   const newGun = new Uzi(loadedUzi.clone());
                   user.equipGun(newGun);
@@ -284,7 +284,7 @@
                 const newGun = new HandGun(loadedHandGun.clone());
                 user.equipGun(newGun);
               } else {
-                gltfLoader.load('../../assets/models/hand_gun.glb', gltf => {
+                gltfLoader.load('../assets/models/hand_gun.glb', gltf => {
                   loadedHandGun = gltf.scene;
                   const newGun = new HandGun(loadedHandGun.clone());
                   user.equipGun(newGun);
