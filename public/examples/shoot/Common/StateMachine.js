@@ -23,7 +23,7 @@ class StateMachine {
     this.state.enter();
   }
   handleEvent(event) {
-    const nextStateName = this.state.handleEvent(event);
+    const nextStateName = this.state.getNextStateName(event);
     if (nextStateName === null) return;
 
     this.state.exit();
@@ -116,7 +116,7 @@ class State extends EventDispatcher {
     this.exitCallbacks.push(callback);
   }
 
-  handleEvent(event) {
+  getNextStateName(event) {
     console.log(event);
   }
 
@@ -146,7 +146,7 @@ class RunState extends State {
     this.addAudio(this.audio, this.buffer, true);
     this.addAction({ action: this.action, fadeInDuration: 0.5, fadeOutDuration: 0.5 });
   }
-  handleEvent(event) {
+  getNextStateName(event) {
     switch (event) {
       case MONSTER_EVENTS.EMPTY_HEALTH:
         return MONSTER_STATE_NAME.DYING;
@@ -173,7 +173,7 @@ class HurtState extends State {
       timeScale: 3,
     });
   }
-  handleEvent(event) {
+  getNextStateName(event) {
     switch (event) {
       case MONSTER_EVENTS.EMPTY_HEALTH:
         return MONSTER_STATE_NAME.DYING;
@@ -194,7 +194,7 @@ class AttackState extends State {
     this.addAudio(this.audio, this.buffer, false);
     this.addAction({ action: this.action, fadeInDuration: 0.5, fadeOutDuration: 0.5, loop: LoopOnce });
   }
-  handleEvent(event) {
+  getNextStateName(event) {
     switch (event) {
       case MONSTER_EVENTS.EMPTY_HEALTH:
         return MONSTER_STATE_NAME.DYING;
@@ -215,7 +215,7 @@ class DyingState extends State {
     this.addAudio(this.audio, this.buffer, false);
     this.addAction({ action: this.action, fadeInDuration: 0.5, fadeOutDuration: 30, loop: LoopOnce });
   }
-  handleEvent(event) {
+  getNextStateName(event) {
     switch (event) {
       case MONSTER_EVENTS.ON_END_STATE:
         return MONSTER_STATE_NAME.DEAD;
