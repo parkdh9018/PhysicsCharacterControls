@@ -27,18 +27,18 @@ class Monster extends EventDispatcher {
     this._fallSpeed = 0;
     this.step = 5;
 
+    this.vector1 = new Vector3();
+    this.vector2 = new Vector3();
+
     this.object = object;
     this.id = this.object.id;
 
     this.health = 100;
     this.healthBar = healthBar;
-    healthBar.object.position.y = 2;
+    this.healthBar.setPositionByObject(this.object, this.vector1.set(0, 0, 0));
     this.object.add(healthBar.object);
 
     this.damage = 5;
-
-    this.vector1 = new Vector3();
-    this.vector2 = new Vector3();
 
     this.collider = collider;
     this.handBone = object.getObjectByName('mixamorigRightHand');
@@ -46,11 +46,8 @@ class Monster extends EventDispatcher {
     this.attackCollider = new Box3();
     this.lastAttackTime = 0;
     this.throttleTime = 600; // 시간(ms)
-    // this.attackCollider.setFromCenterAndSize(this.vector2.set(0, 0, 0), this.vector1.set(0.5, 0.5, 0.5));
 
     this.boxHelper = new Box3Helper(this.attackCollider, 0xff0000);
-
-    // console.log(handBone);
 
     this.target = target;
 
@@ -171,8 +168,6 @@ class Monster extends EventDispatcher {
   }
 
   update(delta, monsters) {
-    // this.handBone.updateMatrixWorld();
-    // this.attackCollider.applyMatrix4(this.handBone.worldMatrix);
     this.handBone.getWorldPosition(this.vector1);
     this.attackCollider.setFromCenterAndSize(this.vector1, this.vector2.set(0.2, 0.2, 0.2));
     const distance = this.object.position.distanceTo(this.target.position);

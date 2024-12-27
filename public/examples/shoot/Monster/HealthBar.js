@@ -1,4 +1,4 @@
-import { CanvasTexture, Sprite, SpriteMaterial } from 'three';
+import { Box3, CanvasTexture, Sprite, SpriteMaterial, Vector3 } from 'three';
 
 export class HealthBar {
   constructor(width, height, maxHealth) {
@@ -16,6 +16,16 @@ export class HealthBar {
 
     this.maxHealth = maxHealth;
     this.update(maxHealth);
+  }
+
+  setPositionByObject(object, offset) {
+    const position = new Vector3();
+    new Box3().setFromObject(object).getSize(position);
+    position.x = 0;
+    position.z = 0;
+    position.add(offset);
+
+    this.object.position.copy(position);
   }
 
   update(health) {
