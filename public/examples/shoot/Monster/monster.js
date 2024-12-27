@@ -191,21 +191,3 @@ class Monster extends EventDispatcher {
 
   dispose() {}
 }
-
-function createSphereHelper(sphere, color = 0xff0000) {
-  const center = sphere.center;
-  const radius = sphere.radius;
-  const geometry = new SphereGeometry(radius, 8, 8); // 구체의 세그먼트 수 조정 가능
-  const material = new MeshBasicMaterial({
-    color: color,
-    wireframe: true, // Wireframe으로 표시
-  });
-  const sphereHelper = new Mesh(geometry, material);
-
-  // 구체 위치를 설정
-  sphereHelper.position.copy(center);
-
-  return sphereHelper;
-}
-
-export { Monster };
