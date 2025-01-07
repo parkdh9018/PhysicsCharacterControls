@@ -2,33 +2,29 @@ module.exports = {
 	env: {
 		browser: true,
 		node: true,
-		es2020: true,
+		es2018: true,
 	},
 	parser: '@typescript-eslint/parser',
 	extends: [
 		'mdcs',
 		'plugin:compat/recommended',
 		'eslint:recommended',
-		'plugin:@typescript-eslint/recommended',
 	],
 	parserOptions: {
-		ecmaVersion: 2020,
+		ecmaVersion: 2018,
 		sourceType: 'module',
 	},
 	rules: {
-		'@typescript-eslint/no-unused-vars': [
+		'semi': [
 			'error',
-			{
-				'varsIgnorePattern': '^_',
-				'argsIgnorePattern': '^_'
-			}
-		],
-		'no-throw-literal': [
-			'error'
+			'always'
 		],
 		'quotes': [
 			'error',
 			'single'
+		],
+		'compat/compat': [
+			'warn',
 		],
 		'prefer-const': [
 			'error',
@@ -37,6 +33,19 @@ module.exports = {
 				'ignoreReadBeforeAssign': false
 			}
 		],
+		'no-unused-vars': [
+			'error',
+			{
+				'varsIgnorePattern': '^_',
+				'argsIgnorePattern': '^_'
+			}
+		],
+		'no-useless-escape': [
+			'off',
+		],
+		'no-throw-literal': [
+			'error'
+		],
 		'no-irregular-whitespace': [
 			'error'
 		],
@@ -44,4 +53,25 @@ module.exports = {
 			'error'
 		],
 	},
+	overrides: [
+		{
+			files: [ '*.ts' ],
+			extends: [ 'plugin:@typescript-eslint/recommended' ],
+			parser: '@typescript-eslint/parser',
+			plugins: [ '@typescript-eslint' ],
+			rules: {
+				'@typescript-eslint/no-unused-vars': [
+					'error',
+					{
+						'varsIgnorePattern': '^_',
+						'argsIgnorePattern': '^_'
+					}
+				],
+			}
+		},
+		{
+			files: [ '*.html' ],
+			plugins: [ 'html' ],
+		},
+	]
 };
