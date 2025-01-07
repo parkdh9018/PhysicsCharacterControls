@@ -9,6 +9,7 @@
     "third-person_keyboard_controls",
     "third-person_mousedrag_controls",
     "third-person_pointerlock_controls",
-    "third-person_gyroscope_mixins"
+    "third-person_gyroscope_mixins",
+    "raceGame"
   ]
 }
