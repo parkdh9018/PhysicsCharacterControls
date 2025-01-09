@@ -460,6 +460,8 @@ class ThirdPersonControls extends FirstPersonControls {
 		if ( event.deltaY > 0 ) this.camera.zoom *= normalizedDelta;
 		else if ( event.deltaY < 0 ) this.camera.zoom /= normalizedDelta;
 
+		this.camera.zoom = Math.max( this.minZoom, Math.min( this.maxZoom, this.camera.zoom ) );
+
 		this.camera.updateProjectionMatrix();
 
 	}
