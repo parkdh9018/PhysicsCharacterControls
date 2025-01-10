@@ -66,7 +66,6 @@ class ThirdPersonControls extends FirstPersonControls {
 	 */
 	enableRotationOnMove: boolean = true;
 
-
 	/** Whether to sync the object's forward axis with the camera.
 	 *
 	 * Possible values:
@@ -405,6 +404,9 @@ class ThirdPersonControls extends FirstPersonControls {
 
 		if ( this.actionStates.ROTATE_LEFT ) this._spherical.theta += this.actionStates.ROTATE_LEFT * deltaSpeed;
 
+		const maxPolarAngle = this.maxTiltAngle + Math.PI / 2;
+		const minPolarAngle = this.minTiltAngle + Math.PI / 2;
+		this._spherical.phi = Math.max( minPolarAngle, Math.min( maxPolarAngle, this._spherical.phi ) );
 		this._spherical.makeSafe();
 
 	}
@@ -459,6 +461,8 @@ class ThirdPersonControls extends FirstPersonControls {
 
 		if ( event.deltaY > 0 ) this.camera.zoom *= normalizedDelta;
 		else if ( event.deltaY < 0 ) this.camera.zoom /= normalizedDelta;
+
+		this.camera.zoom = Math.max( this.minZoom, Math.min( this.maxZoom, this.camera.zoom ) );
 
 		this.camera.updateProjectionMatrix();
 
