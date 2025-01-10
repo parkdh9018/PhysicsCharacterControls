@@ -45,6 +45,16 @@ class FirstPersonControls extends PhysicsControls {
 	 */
 	rotateSpeed: number = 1;
 
+	/** Maximum rotation tilt-up angle (radians).
+	 * @default Math.PI / 2
+	 */
+	maxTiltAngle: number = Math.PI / 2;
+
+	/** Minimum rotation tilt-down angle (radians).
+	 * @default -Math.PI / 2
+	 */
+	minTiltAngle: number = - Math.PI / 2;
+
 	/** Whether to enable acceleration when holding the accelerate key.
 	 * @default true
 	 */
@@ -172,7 +182,7 @@ class FirstPersonControls extends PhysicsControls {
 
 		if ( this.actionStates.ROTATE_LEFT ) this.object.rotateOnWorldAxis( _worldYDirection, this.actionStates.ROTATE_LEFT * speedDelta );
 
-		this.object.rotation.x = Math.max( - Math.PI / 2, Math.min( Math.PI / 2, this.object.rotation.x ) );
+		this.object.rotation.x = Math.max( this.minTiltAngle, Math.min( this.maxTiltAngle, this.object.rotation.x ) );
 
 	}
 
