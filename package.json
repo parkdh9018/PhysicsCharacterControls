@@ -1,9 +1,16 @@
 {
-  "name": "physics-character-controls",
+  "name": "three-game-controls",
   "version": "1.0.0",
-  "description": "",
+  "description": "game controls for three.js",
   "main": "dist/bundle.cjs.js",
   "module": "dist/bundle.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/bundle.esm.js",
+      "require": "./dist/bundle.cjs.js"
+    },
+    "./assets/*": "./dist/assets/*"
+  },
   "sideEffects": false,
   "scripts": {
     "dev": "cross-env NODE_ENV=development rollup -c --watch",
@@ -44,6 +51,7 @@
     "husky": "^8.0.0",
     "lint-staged": "^15.2.10",
     "rollup": "^2.79.2",
+    "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-delete": "^2.1.0",
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-serve": "^1.1.1",
