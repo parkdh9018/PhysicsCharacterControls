@@ -57,23 +57,23 @@ class ThirdPersonControls extends FirstPersonControls {
 	cameraLookAtOffset: Vector3;
 
 	/** Lerp factor for smooth camera transitions.
-	 * @default 0.2
+	 * @default 1
 	 */
-	cameraLerpFactor: number = 0.2;
+	cameraLerpFactor: number = 1;
 
 	/** Whether to rotate the object towards the moving direction.
 	 * @default true
 	 */
 	enableRotationOnMove: boolean = true;
 
-	/** Whether to sync the object's forward axis with the camera.
+	/** The value that determines when to synchronize the object's directional coordinates with the camera's directional coordinates.
 	 *
 	 * Possible values:
 	 * - `'ALWAYS'`: The object's forward axis is always synchronized with the camera, regardless of movement.
 	 * - `'MOVE'`: The object's forward axis is synchronized with the camera only when the object is moving.
 	 * - `'NEVER'`: The object's forward axis is not synchronized with the camera.
 	 *
-	 * @default 'move'
+	 * @default 'MOVE'
 	 */
 	syncAxisWithCamera : 'ALWAYS' | 'MOVE' | 'NEVER' = 'MOVE';
 

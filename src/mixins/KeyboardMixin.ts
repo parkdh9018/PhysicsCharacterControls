@@ -1,4 +1,4 @@
-import { type FirstPersonControls, type Action } from '../controls/base/FirstPersonControls';
+import { type FirstPersonControls, type Action } from '../controls/core/FirstPersonControls';
 
 export interface HasKeyboardMethod {
 	keyToActions: Record<string, Action[]>
@@ -8,6 +8,9 @@ function KeyboardMixin<T extends Constructor<FirstPersonControls>>( Base: T ): C
 
 	return class KeyboardMixin extends Base {
 
+		/**
+		 * The mapping of key codes to actions.
+		 */
 		keyToActions: Record<string, Action[]> = {
 			'KeyW': [ 'MOVE_FORWARD' ],
 			'KeyS': [ 'MOVE_BACKWARD' ],

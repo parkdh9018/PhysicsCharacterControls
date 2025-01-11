@@ -1,4 +1,4 @@
-import { type FirstPersonControls, type Action } from '../controls/base/FirstPersonControls';
+import { type FirstPersonControls, type Action } from '../controls/core/FirstPersonControls';
 
 export interface HasDragMethod {
 	dragXActions: Action[],
@@ -12,10 +12,28 @@ function DragMixin<T extends Constructor<FirstPersonControls>>( Base: T ): Const
 
 	return class DragMixin extends Base {
 
+		/**
+		 * The actions to be performed when dragging the mouse along the x-axis.
+		 * @default [ 'ROTATE_RIGHT' ]
+		 */
 		dragXActions: Action[] = [ 'ROTATE_RIGHT' ];
+
+		/**
+		 * The actions to be performed when dragging the mouse along the y-axis.
+		 * @default [ 'ROTATE_DOWN' ]
+		 */
 		dragYActions: Action[] = [ 'ROTATE_DOWN' ];
 
+		/**
+		 * The damping factor for drag actions.
+		 * @default 1
+		 */
 		dragDampingFactor: number = 1;
+
+		/**
+		 * Whether to enable drag damping.
+		 * @default true
+		 */
 		enableDragDamping: boolean = true;
 
 		// Internals

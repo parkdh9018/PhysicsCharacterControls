@@ -1,5 +1,5 @@
 import { KeyboardMixin } from '../mixins/KeyboardMixin';
-import { FirstPersonControls, type Action } from './base/FirstPersonControls';
+import { FirstPersonControls, type Action } from './core/FirstPersonControls';
 
 class FPKeyboardControls extends KeyboardMixin( FirstPersonControls ) {
 

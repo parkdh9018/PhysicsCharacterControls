@@ -10,6 +10,10 @@ module.exports = {
 		'plugin:compat/recommended',
 		'eslint:recommended',
 	],
+	plugins: [
+		'html',
+		'import',
+	],
 	parserOptions: {
 		ecmaVersion: 2018,
 		sourceType: 'module',
@@ -71,10 +75,6 @@ module.exports = {
 					'off'
 				],
 			}
-		},
-		{
-			files: [ '*.html' ],
-			plugins: [ 'html' ],
 		},
 	]
 };

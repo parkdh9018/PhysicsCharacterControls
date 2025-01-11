@@ -1,6 +1,6 @@
-export * from './controls/base/PhysicsControls';
-export * from './controls/base/FirstPersonControls';
-export * from './controls/base/ThirdPersonControls';
+export * from './controls/core/PhysicsControls';
+export * from './controls/core/FirstPersonControls';
+export * from './controls/core/ThirdPersonControls';
 
 export * from './controls/FPKeyboardControls';
 export * from './controls/FPKeyboardDragControls';
@@ -11,3 +11,7 @@ export * from './controls/TPKeyboardDragControls';
 export * from './controls/TPKeyboardPointerLockControls';
 
 export * from './helpers/PhysicsControlsHelper';
+
+export * from './mixins/DragMixin';
+export * from './mixins/KeyboardMixin';
+export * from './mixins/PointerLockMixin';

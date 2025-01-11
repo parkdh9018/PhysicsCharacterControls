@@ -1,5 +1,5 @@
 import { OrthographicCamera, PerspectiveCamera, Vector3, type Object3D } from 'three';
-import { PhysicsControls } from '../base/PhysicsControls';
+import { PhysicsControls } from './PhysicsControls';
 
 export type Action = 'MOVE_FORWARD' | 'MOVE_BACKWARD' | 'MOVE_LEFTWARD' | 'MOVE_RIGHTWARD' | 'JUMP' | 'ACCELERATE' | 'ROTATE_UP' | 'ROTATE_DOWN' | 'ROTATE_RIGHT' | 'ROTATE_LEFT';
 
@@ -7,6 +7,9 @@ const _worldYDirection = new Vector3( 0, 1, 0 );
 
 class FirstPersonControls extends PhysicsControls {
 
+	/**
+	 * Defines the values for each action. The magnitude of each action is proportional to the assigned value
+	 */
 	actionStates: Record<string, number> = {
 		'MOVE_FORWARD': 0,
 		'MOVE_BACKWARD': 0,
