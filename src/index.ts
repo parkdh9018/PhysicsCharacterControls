@@ -11,3 +11,7 @@ export * from './controls/TPKeyboardDragControls';
 export * from './controls/TPKeyboardPointerLockControls';
 
 export * from './helpers/PhysicsControlsHelper';
+
+export * from './mixins/DragMixin';
+export * from './mixins/KeyboardMixin';
+export * from './mixins/PointerLockMixin';
