@@ -5,7 +5,7 @@ import {
 	Vector3,
 	type ColorRepresentation,
 } from 'three';
-import { PhysicsControls } from '../controls/base/PhysicsControls';
+import { PhysicsControls } from '../controls/core/PhysicsControls';
 
 class PhysicsControlsHelper extends LineSegments<CapsuleGeometry, LineBasicMaterial> {
 

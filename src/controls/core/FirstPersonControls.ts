@@ -1,5 +1,5 @@
 import { OrthographicCamera, PerspectiveCamera, Vector3, type Object3D } from 'three';
-import { PhysicsControls } from '../base/PhysicsControls';
+import { PhysicsControls } from './PhysicsControls';
 
 export type Action = 'MOVE_FORWARD' | 'MOVE_BACKWARD' | 'MOVE_LEFTWARD' | 'MOVE_RIGHTWARD' | 'JUMP' | 'ACCELERATE' | 'ROTATE_UP' | 'ROTATE_DOWN' | 'ROTATE_RIGHT' | 'ROTATE_LEFT';
 

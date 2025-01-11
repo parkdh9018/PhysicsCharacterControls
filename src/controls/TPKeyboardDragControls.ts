@@ -1,6 +1,6 @@
 import { DragMixin } from '../mixins/DragMixin';
 import { KeyboardMixin } from '../mixins/KeyboardMixin';
-import { ThirdPersonControls } from './base/ThirdPersonControls';
+import { ThirdPersonControls } from './core/ThirdPersonControls';
 
 class TPKeyboardDragControls extends KeyboardMixin( DragMixin( ThirdPersonControls ) ) {}
 

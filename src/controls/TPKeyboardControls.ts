@@ -1,6 +1,6 @@
 import { KeyboardMixin } from '../mixins/KeyboardMixin';
-import { type Action } from './base/FirstPersonControls';
-import { ThirdPersonControls } from './base/ThirdPersonControls';
+import { type Action } from './core/FirstPersonControls';
+import { ThirdPersonControls } from './core/ThirdPersonControls';
 
 class TPKeyboardControls extends KeyboardMixin( ThirdPersonControls ) {
 

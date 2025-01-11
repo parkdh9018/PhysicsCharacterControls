@@ -1,6 +1,6 @@
-export * from './controls/base/PhysicsControls';
-export * from './controls/base/FirstPersonControls';
-export * from './controls/base/ThirdPersonControls';
+export * from './controls/core/PhysicsControls';
+export * from './controls/core/FirstPersonControls';
+export * from './controls/core/ThirdPersonControls';
 
 export * from './controls/FPKeyboardControls';
 export * from './controls/FPKeyboardDragControls';

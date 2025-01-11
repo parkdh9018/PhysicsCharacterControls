@@ -1,4 +1,4 @@
-import { type FirstPersonControls, type Action } from '../controls/base/FirstPersonControls';
+import { type FirstPersonControls, type Action } from '../controls/core/FirstPersonControls';
 
 export interface HasDragMethod {
 	dragXActions: Action[],
