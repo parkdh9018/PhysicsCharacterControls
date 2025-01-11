@@ -7,6 +7,9 @@ const _worldYDirection = new Vector3( 0, 1, 0 );
 
 class FirstPersonControls extends PhysicsControls {
 
+	/**
+	 * Defines the values for each action. The magnitude of each action is proportional to the assigned value
+	 */
 	actionStates: Record<string, number> = {
 		'MOVE_FORWARD': 0,
 		'MOVE_BACKWARD': 0,

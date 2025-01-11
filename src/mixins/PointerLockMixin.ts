@@ -3,7 +3,6 @@ import { type FirstPersonControls, type Action } from '../controls/base/FirstPer
 export interface HasPointerLockMethod {
 	pointerLockXActions: Action[],
 	pointerLockYActions: Action[],
-
 	pointerLockDampingFactor: number,
 	enablePointerLockDamping: boolean,
 }
@@ -12,10 +11,28 @@ function PointerLockMixin<T extends Constructor<FirstPersonControls>>( Base: T )
 
 	return class PointerLockMixin extends Base {
 
+		/**
+		 * The actions to be performed when pointer is locked and moved along the x-axis.
+		 * @default [ 'ROTATE_RIGHT' ]
+		 */
 		pointerLockXActions: Action[] = [ 'ROTATE_RIGHT' ];
+
+		/**
+		 * The actions to be performed when pointer is locked and moved along the y-axis.
+		 * @default [ 'ROTATE_DOWN' ]
+		 */
 		pointerLockYActions: Action[] = [ 'ROTATE_DOWN' ];
 
+		/**
+		 * The damping factor for pointer lock actions.
+		 * @default 1
+		 */
 		pointerLockDampingFactor: number = 1;
+
+		/**
+		 * Whether to enable pointer lock damping.
+		 * @default true
+		 */
 		enablePointerLockDamping: boolean = true;
 
 		// Internals
