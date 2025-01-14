@@ -42,7 +42,15 @@
     "animation"
   ],
   "author": "Byongho Lee",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Byongho96/three-game-controls"
+  },
+  "bugs": {
+    "url": "https://github.com/Byongho96/three-game-controls/issues"
+  },
+  "homepage": "https://byongho96.github.io/three-game-controls/",
   "devDependencies": {
     "@babel/core": "^7.25.7",
     "@babel/preset-env": "^7.25.7",
