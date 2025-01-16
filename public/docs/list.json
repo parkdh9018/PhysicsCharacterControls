@@ -3,7 +3,7 @@
     "Getting Started": {
       "Overview": "manual/Overview",
       "Installation": "manual/Installation",
-      "Quick Start": "manual/Quick-start",
+      "Quick Start": "manual/Quick-Start",
       "Customization": "manual/Customization"
     }
   },
@@ -37,6 +37,7 @@
 
     "Mixins": {
       "DragMixin": "api/mixins/DragMixin",
+      "GyroMixin": "api/mixins/GyroMixin",
       "KeyboardMixin": "api/mixins/KeyboardMixin",
       "PointerLockMixin": "api/mixins/PointerLockMixin"
     }

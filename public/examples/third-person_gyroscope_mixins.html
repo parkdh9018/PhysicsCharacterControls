@@ -1,15 +1,17 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>TPKeyPointerLockControls</title>
+		<title>Third-person gyroscope control</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
 		<link type="text/css" rel="stylesheet" href="main.css" />
 	</head>
 	<body>
 		<div id="info">
-			TPKeyPointerLockControls demo <br />
-			Move with WASD, look with the mouse, and rotate using pointer lock.
+			Third-person gyroscope controls demo <br />
+			Tilt your device to move the character<br/>
+			( ios 13+: Click the screen to grant DeviceOrientationEvent )<br/>
+			<button id="reset">reset orientation</button>
 		</div>
 		<div id="container"></div>
 
@@ -30,7 +32,7 @@
 
 			import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-			import { TPKeyboardPointerLockControls, PhysicsControlsHelper } from 'three-game-controls';
+			import { GyroMixin, ThirdPersonControls, PhysicsControlsHelper } from 'three-game-controls';
 
 			const container = document.getElementById( 'container' );
 
@@ -102,7 +104,9 @@
 
 					} );
 
-					controls = new TPKeyboardPointerLockControls(
+					const TPGyroControls = GyroMixin( ThirdPersonControls );
+
+					controls = new TPGyroControls(
 						character.scene,
 						renderer.domElement,
 						world.scene,
@@ -123,6 +127,7 @@
 						camera,
 					);
 					controls.minYBoundary = - 10;
+
 
 					helpers = new PhysicsControlsHelper( controls, 0xffffff );
 					helpers.visible = false;
@@ -161,12 +166,12 @@
 
 					// GUI - Animation
 					const folder4 = gui.addFolder( 'Animation' );
-					folder4.add( controls, 'moveSpeedThreshold', 0, 2 ).name( 'move speed threshold' ).listen();
-					folder4.add( controls, 'runSpeedThreshold', 2, 8 ).name( 'move speed threshold' ).listen();
-					folder4.add( controls, 'fallSpeedThreshold', 1, 30 ).name( 'fall speed threshold' ).listen();
+					folder4.add( controls, 'moveSpeedThreshold', 0, 2 ).name( 'move threshold' ).listen();
+					folder4.add( controls, 'runSpeedThreshold', 2, 8 ).name( 'run threshold' ).listen();
+					folder4.add( controls, 'fallSpeedThreshold', 1, 30 ).name( 'fall threshold' ).listen();
 					folder4.add( controls, 'transitionTime', 0, 1 ).name( 'transition time' ).listen();
 
-	},
+				},
 			);
 
 			// Scene
@@ -237,6 +242,15 @@
 			}
 
 			window.addEventListener( 'resize', onWindowResize );
+
+
+			function resetOrientation() {
+
+				if ( controls )controls.needsResetOrientation = true;
+			
+			}
+
+			document.getElementById( 'reset' ).addEventListener( 'click', resetOrientation );
 
 			// Dispose function
 			function dispose() {
