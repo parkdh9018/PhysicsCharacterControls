@@ -30,7 +30,7 @@
 
       import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-      import { ThirdPersonKeyboardControls, PhysicsControlsHelper } from 'physics-character-controls';
+      import { TPKeyboardControls, PhysicsControlsHelper, Collider } from 'physics-character-controls';
 
       const container = document.getElementById( 'container' );
 
@@ -50,22 +50,22 @@
 
       	scene.add( world.scene );
 
-      	console.log( world.scene );
-      	console.log( world.scene.getObjectByName( 'Mesh_Raceway_Collision' ) );
-
       	world.scene.traverse( child => {
 
-      		if ( child.isMesh ) {
+		if ( child.isMesh ) {
 
-      			child.castShadow = true;
-      			child.receiveShadow = true;
-      
+			child.castShadow = true;
+			child.receiveShadow = true;
+			child.material.wireframe = true;
+			child.material.color.set( 'blue' );
+
 		}
-      
+
 	} );
-      	world.scene.rotation.set( 0, Math.PI, 0 );
-      	world.scene.scale.set( 100, 100, 100 );
-      	world.scene.position.set( 40, - 10, 15 );
+	world.scene.rotation.set( 0, Math.PI, 0 );
+	world.scene.scale.set( 100, 100, 100 );
+	world.scene.position.set( 40, - 10, 15 );
+	world.scene.updateMatrixWorld( true );
 
       	scene.add( character.scene );
       	character.scene.position.set( 0, 0, 0 );
@@ -77,70 +77,24 @@
       			child.castShadow = true;
       			child.receiveShadow = true;
       
-		}
+      		}
       
 	} );
+	controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene, {}, camera );
+	controls.cameraPositionOffset = new THREE.Vector3( 0, 2, - 5 );
+	controls.enableZoom = false;
+	controls.syncAxisWithCamera = 'MOVE';
+	controls.enableRotationOnMove = false;
+	controls.groundedMoveSpeed = 60;
+	controls.collider = new Collider( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ), 1 );
 
-      	controls = new ThirdPersonKeyboardControls( {
-      		object: character.scene,
-      		domElement: renderer.domElement,
-      		worldObject: world.scene.getObjectByName( 'Mesh_Raceway_Collision' ),
-      		camera: camera,
-      		cameraOptions: {
-      			posOffset: new THREE.Vector3( 0, 2, - 5 ),
-      			// lookAtOffset: new THREE.Vector3(0, 10, 0),
-      			// enableZoom: true,
-      			// zoomSpeed: 0.5,
-      			// axisSync: 'move',
-      			cameraLerpFactor: 0.1,
-      		},
-      		// animationOptions: {
-      		//   animationClips: {
-      		//     idle: idle.animations[0],
-      		//   },
-      		// },
-      		physicsOptions: {
-      			colliderHeight: 2,
-      			colliderRadius: 1,
-      			groundMoveSpeed: 60,
-      		},
-      	} );
-
-      	helpers = new PhysicsControlsHelper( controls, 0xffffff );
-      	helpers.visible = true;
-      	scene.add( helpers );
+	helpers = new PhysicsControlsHelper( controls, 0xffffff );
+	helpers.visible = true;
+	scene.add( helpers );
 
       	// GUI - Debug
       	const folder1 = gui.addFolder( 'Debug' );
       	folder1.add( helpers, 'visible' ).name( 'debug' ).listen();
-
-      	// // GUI - Physics
-      	// const folder2 = gui.addFolder('Physics');
-      	// folder2.add(controls, 'gravity', 0, 50).name('gravity').listen();
-      	// folder2.add(controls, 'jumpForce', 0, 30).name('jump force').listen();
-      	// folder2.add(controls, 'groundMoveSpeed', 0, 50).name('move speed').listen();
-      	// folder2.add(controls, 'rotateSpeed', 0, 5).name('rotate speed').listen();
-      	// folder2.add(controls, 'movementResistance', 0, 10).name('resistance').listen();
-      	// folder2.add(controls, 'enableDiagonalMovement').name('diagonal movement').listen();
-      	// folder2.add(controls, 'enableRotationOnMove').name('rotation on move').listen();
-      	// folder2.add(controls, 'enableAcceleration').name('enable acceleration').listen();
-      	// folder2.add(controls, 'accelerationFactor', 1, 3).name('acceleration factor').listen();
-      	// folder2.add(controls, 'landTimeThreshold', 0, 500).name('land time threshold').listen();
-
-      	// // GUI - Camera
-      	// const folder3 = gui.addFolder('Camera');
-      	// const cameraPosition = folder3.addFolder('position offset').close();
-      	// cameraPosition.add(controls.cameraPositionOffset, 'x', -10, 10).name('x').listen();
-      	// cameraPosition.add(controls.cameraPositionOffset, 'y', -10, 10).name('y').listen();
-      	// cameraPosition.add(controls.cameraPositionOffset, 'z', -10, 10).name('z').listen();
-      	// const cameraLookAt = folder3.addFolder('look at offset').close();
-      	// cameraLookAt.add(controls.cameraLookAtOffset, 'x', -10, 10).name('x').listen();
-      	// cameraLookAt.add(controls.cameraLookAtOffset, 'y', -10, 10).name('y').listen();
-      	// cameraLookAt.add(controls.cameraLookAtOffset, 'z', -10, 10).name('z').listen();
-      	// folder3.add(controls, 'enableZoom').name('enable zoom').listen();
-      	// folder3.add(controls, 'zoomSpeed', 0, 3).name('zoom speed').listen();
-      	// folder3.add(controls, 'axisSync', ['always', 'move', 'never']).name('axis sync');
-      	// folder3.add(controls, 'cameraLerpFactor', 0, 1).name('lerp factor').listen();
 
       } );
 
@@ -190,17 +144,60 @@
 
       function animate() {
 
-      	const delta = Math.min( 0.05, clock.getDelta() );
+	const delta = Math.min( 0.05, clock.getDelta() );
 
-      	controls && controls.update( delta );
+	controls && controls.update( delta );
 
-      	helpers && helpers.update();
+	controls && rotateToMatchSurface();
 
-      	renderer.render( scene, camera );
+	helpers && helpers.update();
 
-      	stats.update();
+	renderer.render( scene, camera );
 
-      }
+	stats.update();
+
+}
+
+function rotateToMatchSurface() {
+
+	const raycaster = new THREE.Raycaster();
+	raycaster.set( controls.object.position, new THREE.Vector3( 0, - 1, 0 ) ); // 아래 방향 (-Y)
+
+	// 교차한 객체들 검사
+	const intersects = raycaster.intersectObjects( scene.children, true ); // 지형 포함
+	if ( intersects.length > 0 ) {
+
+		for ( const intersect of intersects ) {
+
+			if ( intersect.object.name === 'Mesh_Raceway_Collision_Rework_24_-_Default_0' && intersect.distance < 0.1 ) {
+
+				const normal = intersect.face.normal.clone(); // 경사면의 법선 벡터
+				// Normal Matrix 생성 (스케일 영향을 제거)
+				const normalMatrix = new THREE.Matrix3().getNormalMatrix( intersect.object.matrixWorld );
+
+				// Normal Matrix로 법선 벡터 변환
+				normal.applyMatrix3( normalMatrix ).normalize();
+
+				const euler = controls.object.rotation.clone();
+
+				const up = new THREE.Vector3( 0, 1, 0 );
+
+				const quaternion = new THREE.Quaternion();
+				quaternion.setFromUnitVectors( up, normal );
+				const quaternion2 = new THREE.Quaternion().setFromAxisAngle( up, euler.y );
+				quaternion.multiply( quaternion2 );
+
+				// controls.object.quaternion.slerp( quaternion, 0.5 );
+				controls.object.quaternion.copy( quaternion );
+
+			}
+
+		}
+
+	}
+
+}
+
 
       function onWindowResize() {
 
@@ -235,13 +232,13 @@
 
       				object.material.forEach( material => material.dispose() );
       
-			} else if ( object.material ) {
+      			} else if ( object.material ) {
 
       				object.material.dispose();
       
-			}
+      			}
       
-		}
+      		}
       
 	} );
 
