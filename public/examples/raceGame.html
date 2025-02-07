@@ -5,12 +5,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <link type="text/css" rel="stylesheet" href="main.css" />
+    <link type="text/css" rel="stylesheet" href="./racing/styles.css" />
   </head>
   <body>
     <div id="info">
       Physics character controls demo <br />
       WASD to move, Arrow Keys to rotate and SPACE to jump
     </div>
+	<div id="speedometer_container">
+		<div id="wrapper">
+			<div id="speedometer"></div>
+			<div id="needle"></div>
+			<div id="center">
+				<span id="velocity">0</span>
+				<span>km/h</span>
+			</div>
+		</div>
+	</div>
     <div id="container"></div>
 
     <script type="importmap">
@@ -56,7 +67,7 @@
 
 			child.castShadow = true;
 			child.receiveShadow = true;
-			child.material.wireframe = true;
+			// child.material.wireframe = true;
 			child.material.color.set( 'blue' );
 
 		}
@@ -67,18 +78,18 @@
 	world.scene.position.set( 40, - 10, 15 );
 	world.scene.updateMatrixWorld( true );
 
-      	scene.add( character.scene );
-      	character.scene.position.set( 0, 0, 0 );
-      	character.scene.scale.set( 0.7, 0.7, 0.7 );
-      	character.scene.traverse( child => {
+	scene.add( character.scene );
+	character.scene.position.set( 0, 0, 0 );
+	character.scene.scale.set( 0.7, 0.7, 0.7 );
+	character.scene.traverse( child => {
 
-      		if ( child.isMesh ) {
+		if ( child.isMesh ) {
 
-      			child.castShadow = true;
-      			child.receiveShadow = true;
-      
-      		}
-      
+			child.castShadow = true;
+			child.receiveShadow = true;
+
+		}
+
 	} );
 	controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene, {}, camera );
 	controls.cameraPositionOffset = new THREE.Vector3( 0, 2, - 5 );
@@ -142,6 +153,9 @@
       stats.domElement.style.top = '0px';
       container.appendChild( stats.domElement );
 
+      const velocity = new THREE.Vector3();
+      let prevV = 0;
+
       function animate() {
 
 	const delta = Math.min( 0.05, clock.getDelta() );
@@ -150,11 +164,35 @@
 
 	controls && rotateToMatchSurface();
 
+	controls && setSpeedometer( );
+
+	controls &&
+
 	helpers && helpers.update();
 
 	renderer.render( scene, camera );
 
 	stats.update();
+
+}
+
+function setSpeedometer() {
+
+	controls.getLocalVelocity( velocity );
+
+	const needle = document.getElementById( 'needle' );
+
+	const v = Math.max( ( velocity.z / 10 ) * 140, 0 );
+
+	const velocityNumber = document.getElementById( 'velocity' );
+
+	if ( Math.abs( v - prevV ) < 10 ) return;
+
+	velocityNumber.textContent = Math.round( v );
+
+	needle.style.setProperty( '--angle', `${v}deg` );
+
+	prevV = v;
 
 }
 
@@ -187,7 +225,7 @@ function rotateToMatchSurface() {
 				const quaternion2 = new THREE.Quaternion().setFromAxisAngle( up, euler.y );
 				quaternion.multiply( quaternion2 );
 
-				// controls.object.quaternion.slerp( quaternion, 0.5 );
+				// controls.object.quaternion.slerp( quaternion, 0.3 );
 				controls.object.quaternion.copy( quaternion );
 
 			}
