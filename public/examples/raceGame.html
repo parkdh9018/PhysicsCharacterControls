@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="en">
-  <head>
+	<head>
     <title>Physics Character Controls - Supported by Three.js</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <link type="text/css" rel="stylesheet" href="main.css" />
     <link type="text/css" rel="stylesheet" href="./racing/styles.css" />
-  </head>
-  <body>
+	</head>
+	<body>
     <div id="info">
-      Physics character controls demo <br />
-      WASD to move, Arrow Keys to rotate and SPACE to jump
+		<br />
+		You can move using WASD or arrow keys, and accelerate with the Shift key.
     </div>
 	<div id="speedometer_container">
 		<div id="wrapper">
@@ -25,208 +25,211 @@
     <div id="container"></div>
 
     <script type="importmap">
-      {
-        "imports": {
-          "physics-character-controls": "../dist/bundle.esm.js",
-          "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
-        }
-      }
-    </script>
-    <script type="module">
-      import * as THREE from 'three';
-
-      import Stats from 'three/addons/libs/stats.module.js';
-      import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
-
-      import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
-      import { TPKeyboardControls, PhysicsControlsHelper, Collider } from 'physics-character-controls';
-
-      const container = document.getElementById( 'container' );
-
-      const gui = new GUI( { width: 200 } );
-
-      const clock = new THREE.Clock();
-
-      const gltfLoader = new GLTFLoader();
-
-      let controls;
-      let helpers;
-
-      Promise.all( [
-      	gltfLoader.loadAsync( './assets/models/raceway_map__col.glb' ),
-      	gltfLoader.loadAsync( './assets/models/stylized_racing_car.glb' ),
-      ] ).then( ( [ world, character ] ) => {
-
-      	scene.add( world.scene );
-
-      	world.scene.traverse( child => {
-
-		if ( child.isMesh ) {
-
-			child.castShadow = true;
-			child.receiveShadow = true;
-			// child.material.wireframe = true;
-			child.material.color.set( 'blue' );
-
+	{
+		"imports": {
+			"physics-character-controls": "../dist/bundle.esm.js",
+			"three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
 		}
+	}
+	</script>
+	<script type="module">
+	import * as THREE from 'three';
+
+	import Stats from 'three/addons/libs/stats.module.js';
+
+	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+	import { TPKeyboardControls, Collider } from 'physics-character-controls';
+
+	const container = document.getElementById( 'container' );
+
+	const clock = new THREE.Clock();
+
+	const gltfLoader = new GLTFLoader();
+
+	let controls;
+	let helpers;
+
+	Promise.all( [
+		gltfLoader.loadAsync( './assets/models/raceway_map__col.glb' ),
+		gltfLoader.loadAsync( './assets/models/stylized_racing_car.glb' ),
+	] ).then( ( [ world, character ] ) => {
+
+		scene.add( world.scene );
+
+		world.scene.traverse( child => {
+
+			if ( child.isMesh ) {
+
+				child.castShadow = true;
+				child.receiveShadow = true;
+				child.material.color.set( 'blue' );
+
+			}
+
+		} );
+		world.scene.rotation.set( 0, Math.PI, 0 );
+		world.scene.scale.set( 100, 100, 100 );
+		world.scene.position.set( 40, - 10, 15 );
+		world.scene.updateMatrixWorld( true );
+
+		scene.add( character.scene );
+		character.scene.position.set( 0, 0, 0 );
+		character.scene.scale.set( 0.7, 0.7, 0.7 );
+		character.scene.traverse( child => {
+
+			if ( child.isMesh ) {
+
+				child.castShadow = true;
+				child.receiveShadow = true;
+
+			}
+
+		} );
+
+		controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene, {
+			'MOVE_FORWARD': character.animations[ 0 ],
+		}, camera );
+		controls.cameraPositionOffset = new THREE.Vector3( 0, 2, - 5 );
+		controls.enableZoom = false;
+		controls.syncAxisWithCamera = 'ALWAYS';
+		controls.enableRotationOnMove = false;
+		controls.groundedMoveSpeed = 60;
+		controls.cameraLerpFactor = 0.2;
+		controls.collider = new Collider( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ), 1 );
+		controls.keyToActions = {
+			'KeyW': [ 'MOVE_FORWARD' ],
+			'KeyS': [ 'MOVE_BACKWARD' ],
+			'KeyA': [ 'ROTATE_LEFT' ],
+			'KeyD': [ 'ROTATE_RIGHT' ],
+			'ShiftLeft': [ 'ACCELERATE' ],
+			'ArrowUp': [ 'MOVE_FORWARD' ],
+			'ArrowDown': [ 'MOVE_BACKWARD' ],
+			'ArrowRight': [ 'ROTATE_RIGHT' ],
+			'ArrowLeft': [ 'ROTATE_LEFT' ]
+		};
 
 	} );
-	world.scene.rotation.set( 0, Math.PI, 0 );
-	world.scene.scale.set( 100, 100, 100 );
-	world.scene.position.set( 40, - 10, 15 );
-	world.scene.updateMatrixWorld( true );
 
-	scene.add( character.scene );
-	character.scene.position.set( 0, 0, 0 );
-	character.scene.scale.set( 0.7, 0.7, 0.7 );
-	character.scene.traverse( child => {
+	// Scene
+	const scene = new THREE.Scene();
+	scene.background = new THREE.Color( 0x88ccee );
 
-		if ( child.isMesh ) {
+	// Camera
+	const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+	camera.rotation.order = 'YXZ';
 
-			child.castShadow = true;
-			child.receiveShadow = true;
+	// Light
+	const fillLight1 = new THREE.HemisphereLight( 0x8dc1de, 0x00668d, 1.5 );
+	fillLight1.position.set( 2, 1, 1 );
+	scene.add( fillLight1 );
 
-		}
+	const directionalLight = new THREE.DirectionalLight( 0xffffff, 2.5 );
+	directionalLight.position.set( - 5, 25, - 1 );
+	directionalLight.castShadow = true;
+	directionalLight.shadow.camera.near = 0.01;
+	directionalLight.shadow.camera.far = 500;
+	directionalLight.shadow.camera.right = 30;
+	directionalLight.shadow.camera.left = - 30;
+	directionalLight.shadow.camera.top = 30;
+	directionalLight.shadow.camera.bottom = - 30;
+	directionalLight.shadow.mapSize.width = 1024;
+	directionalLight.shadow.mapSize.height = 1024;
+	directionalLight.shadow.radius = 4;
+	directionalLight.shadow.bias = - 0.00006;
+	scene.add( directionalLight );
 
-	} );
-	controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene, {}, camera );
-	controls.cameraPositionOffset = new THREE.Vector3( 0, 2, - 5 );
-	controls.enableZoom = false;
-	controls.syncAxisWithCamera = 'MOVE';
-	controls.enableRotationOnMove = false;
-	controls.groundedMoveSpeed = 60;
-	controls.collider = new Collider( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ), 1 );
+	// Renderer
+	const renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setAnimationLoop( animate );
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+	container.appendChild( renderer.domElement );
 
-	helpers = new PhysicsControlsHelper( controls, 0xffffff );
-	helpers.visible = true;
-	scene.add( helpers );
+	// Stats
+	const stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	container.appendChild( stats.domElement );
 
-      	// GUI - Debug
-      	const folder1 = gui.addFolder( 'Debug' );
-      	folder1.add( helpers, 'visible' ).name( 'debug' ).listen();
+	const velocity = new THREE.Vector3();
+	let prevV = 0;
 
-      } );
+	function animate() {
 
-      // Scene
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color( 0x88ccee );
+		const delta = Math.min( 0.05, clock.getDelta() );
 
-      // Camera
-      const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-      camera.rotation.order = 'YXZ';
+		controls && controls.update( delta );
 
-      // Light
-      const fillLight1 = new THREE.HemisphereLight( 0x8dc1de, 0x00668d, 1.5 );
-      fillLight1.position.set( 2, 1, 1 );
-      scene.add( fillLight1 );
+		controls && rotateToMatchSurface();
 
-      const directionalLight = new THREE.DirectionalLight( 0xffffff, 2.5 );
-      directionalLight.position.set( - 5, 25, - 1 );
-      directionalLight.castShadow = true;
-      directionalLight.shadow.camera.near = 0.01;
-      directionalLight.shadow.camera.far = 500;
-      directionalLight.shadow.camera.right = 30;
-      directionalLight.shadow.camera.left = - 30;
-      directionalLight.shadow.camera.top = 30;
-      directionalLight.shadow.camera.bottom = - 30;
-      directionalLight.shadow.mapSize.width = 1024;
-      directionalLight.shadow.mapSize.height = 1024;
-      directionalLight.shadow.radius = 4;
-      directionalLight.shadow.bias = - 0.00006;
-      scene.add( directionalLight );
+		controls && setSpeedometer( );
 
-      // Renderer
-      const renderer = new THREE.WebGLRenderer( { antialias: true } );
-      renderer.setPixelRatio( window.devicePixelRatio );
-      renderer.setSize( window.innerWidth, window.innerHeight );
-      renderer.setAnimationLoop( animate );
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      container.appendChild( renderer.domElement );
+		helpers && helpers.update();
 
-      // Stats
-      const stats = new Stats();
-      stats.domElement.style.position = 'absolute';
-      stats.domElement.style.top = '0px';
-      container.appendChild( stats.domElement );
+		renderer.render( scene, camera );
 
-      const velocity = new THREE.Vector3();
-      let prevV = 0;
+		stats.update();
 
-      function animate() {
+	}
 
-	const delta = Math.min( 0.05, clock.getDelta() );
+	function setSpeedometer() {
 
-	controls && controls.update( delta );
+		controls.getLocalVelocity( velocity );
 
-	controls && rotateToMatchSurface();
+		const needle = document.getElementById( 'needle' );
 
-	controls && setSpeedometer( );
+		const v = Math.max( ( velocity.z / 10 ) * 140, 0 );
 
-	controls &&
+		const velocityNumber = document.getElementById( 'velocity' );
 
-	helpers && helpers.update();
+		if ( Math.abs( v - prevV ) < 10 ) return;
 
-	renderer.render( scene, camera );
+		velocityNumber.textContent = Math.round( v );
 
-	stats.update();
+		needle.style.setProperty( '--angle', `${v}deg` );
 
-}
+		prevV = v;
 
-function setSpeedometer() {
+	}
 
-	controls.getLocalVelocity( velocity );
+	function rotateToMatchSurface() {
 
-	const needle = document.getElementById( 'needle' );
+		const raycaster = new THREE.Raycaster();
+		raycaster.set( controls.object.position, new THREE.Vector3( 0, - 1, 0 ) ); // 아래 방향 (-Y)
 
-	const v = Math.max( ( velocity.z / 10 ) * 140, 0 );
+		// 교차한 객체들 검사
+		const intersects = raycaster.intersectObjects( scene.children, true ); // 지형 포함
+		if ( intersects.length > 0 ) {
 
-	const velocityNumber = document.getElementById( 'velocity' );
+			for ( const intersect of intersects ) {
 
-	if ( Math.abs( v - prevV ) < 10 ) return;
+				if ( intersect.object.name === 'Mesh_Raceway_Collision_Rework_24_-_Default_0' && intersect.distance < 0.1 ) {
 
-	velocityNumber.textContent = Math.round( v );
+					const normal = intersect.face.normal.clone(); // 경사면의 법선 벡터
+					// Normal Matrix 생성 (스케일 영향을 제거)
+					const normalMatrix = new THREE.Matrix3().getNormalMatrix( intersect.object.matrixWorld );
 
-	needle.style.setProperty( '--angle', `${v}deg` );
+					// Normal Matrix로 법선 벡터 변환
+					normal.applyMatrix3( normalMatrix ).normalize();
 
-	prevV = v;
+					const euler = controls.object.rotation.clone();
 
-}
+					const up = new THREE.Vector3( 0, 1, 0 );
 
-function rotateToMatchSurface() {
+					const quaternion = new THREE.Quaternion();
+					quaternion.setFromUnitVectors( up, normal );
+					const quaternion2 = new THREE.Quaternion().setFromAxisAngle( up, euler.y );
+					quaternion.multiply( quaternion2 );
 
-	const raycaster = new THREE.Raycaster();
-	raycaster.set( controls.object.position, new THREE.Vector3( 0, - 1, 0 ) ); // 아래 방향 (-Y)
+					// controls.object.quaternion.slerp( quaternion, 0.3 );
+					controls.object.quaternion.copy( quaternion );
 
-	// 교차한 객체들 검사
-	const intersects = raycaster.intersectObjects( scene.children, true ); // 지형 포함
-	if ( intersects.length > 0 ) {
-
-		for ( const intersect of intersects ) {
-
-			if ( intersect.object.name === 'Mesh_Raceway_Collision_Rework_24_-_Default_0' && intersect.distance < 0.1 ) {
-
-				const normal = intersect.face.normal.clone(); // 경사면의 법선 벡터
-				// Normal Matrix 생성 (스케일 영향을 제거)
-				const normalMatrix = new THREE.Matrix3().getNormalMatrix( intersect.object.matrixWorld );
-
-				// Normal Matrix로 법선 벡터 변환
-				normal.applyMatrix3( normalMatrix ).normalize();
-
-				const euler = controls.object.rotation.clone();
-
-				const up = new THREE.Vector3( 0, 1, 0 );
-
-				const quaternion = new THREE.Quaternion();
-				quaternion.setFromUnitVectors( up, normal );
-				const quaternion2 = new THREE.Quaternion().setFromAxisAngle( up, euler.y );
-				quaternion.multiply( quaternion2 );
-
-				// controls.object.quaternion.slerp( quaternion, 0.3 );
-				controls.object.quaternion.copy( quaternion );
+				}
 
 			}
 
@@ -234,62 +237,60 @@ function rotateToMatchSurface() {
 
 	}
 
-}
 
+	function onWindowResize() {
 
-      function onWindowResize() {
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
 
-      	camera.aspect = window.innerWidth / window.innerHeight;
-      	camera.updateProjectionMatrix();
+		renderer.setSize( window.innerWidth, window.innerHeight );
 
-      	renderer.setSize( window.innerWidth, window.innerHeight );
-
-      }
-
-      window.addEventListener( 'resize', onWindowResize );
-
-      // Dispose function
-      function dispose() {
-
-      	renderer.setAnimationLoop( null );
-
-      	window.removeEventListener( 'resize', onWindowResize );
-
-      	controls && controls.disconnect();
-      	helpers && helpers.dispose();
-      	renderer.dispose();
-
-      	// Dispose of scene objects
-      	scene.traverse( object => {
-
-      		if ( object.isMesh ) {
-
-      			object.geometry.dispose();
-
-      			if ( Array.isArray( object.material ) ) {
-
-      				object.material.forEach( material => material.dispose() );
-      
-      			} else if ( object.material ) {
-
-      				object.material.dispose();
-      
-      			}
-      
-      		}
-      
-	} );
-
-      	// Remove renderer DOM element
-      	if ( renderer.domElement && renderer.domElement.parentNode ) {
-
-      		renderer.domElement.parentNode.removeChild( renderer.domElement );
-      
 	}
 
-      }
+	window.addEventListener( 'resize', onWindowResize );
 
-      window.addEventListener( 'beforeunload', dispose );
-    </script>
-  </body>
+	// Dispose function
+	function dispose() {
+
+		renderer.setAnimationLoop( null );
+
+		window.removeEventListener( 'resize', onWindowResize );
+
+		controls && controls.disconnect();
+		helpers && helpers.dispose();
+		renderer.dispose();
+
+		// Dispose of scene objects
+		scene.traverse( object => {
+
+			if ( object.isMesh ) {
+
+				object.geometry.dispose();
+
+				if ( Array.isArray( object.material ) ) {
+
+					object.material.forEach( material => material.dispose() );
+
+				} else if ( object.material ) {
+
+					object.material.dispose();
+
+				}
+
+			}
+
+		} );
+
+		// Remove renderer DOM element
+		if ( renderer.domElement && renderer.domElement.parentNode ) {
+
+			renderer.domElement.parentNode.removeChild( renderer.domElement );
+
+		}
+
+	}
+
+	window.addEventListener( 'beforeunload', dispose );
+</script>
+</body>
 </html>
