@@ -52,7 +52,7 @@
 	let helpers;
 
 	Promise.all( [
-		gltfLoader.loadAsync( './assets/models/raceway_map__col.glb' ),
+		gltfLoader.loadAsync( './assets/models/raceway_map.glb' ),
 		gltfLoader.loadAsync( './assets/models/stylized_racing_car.glb' ),
 	] ).then( ( [ world, character ] ) => {
 
@@ -64,7 +64,6 @@
 
 				child.castShadow = true;
 				child.receiveShadow = true;
-				child.material.color.set( 'blue' );
 
 			}
 
@@ -83,12 +82,12 @@
 
 				child.castShadow = true;
 				child.receiveShadow = true;
-
+	
 			}
 
 		} );
 
-		controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene, {
+		controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene.getObjectByName( 'Mesh_Raceway_Collision' ), {
 			'MOVE_FORWARD': character.animations[ 0 ],
 		}, camera );
 		controls.cameraPositionOffset = new THREE.Vector3( 0, 2, - 5 );
