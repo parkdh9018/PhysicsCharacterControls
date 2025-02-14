@@ -51,10 +51,13 @@
 	let controls;
 	let helpers;
 
+	const finishLineBox = new THREE.Box3();
+	const carBox = new THREE.Box3();
+
 	Promise.all( [
 		gltfLoader.loadAsync( './assets/models/raceway_map.glb' ),
 		gltfLoader.loadAsync( './assets/models/stylized_racing_car.glb' ),
-	] ).then( ( [ world, character ] ) => {
+	] ).then( ( [ world, car ] ) => {
 
 		scene.add( world.scene );
 
@@ -73,10 +76,10 @@
 		world.scene.position.set( 40, - 10, 15 );
 		world.scene.updateMatrixWorld( true );
 
-		scene.add( character.scene );
-		character.scene.position.set( 0, 0, 0 );
-		character.scene.scale.set( 0.7, 0.7, 0.7 );
-		character.scene.traverse( child => {
+		scene.add( car.scene );
+		car.scene.position.set( 0, 0, 0 );
+		car.scene.scale.set( 0.7, 0.7, 0.7 );
+		car.scene.traverse( child => {
 
 			if ( child.isMesh ) {
 
@@ -87,8 +90,8 @@
 
 		} );
 
-		controls = new TPKeyboardControls( character.scene, renderer.domElement, world.scene.getObjectByName( 'Mesh_Raceway_Collision' ), {
-			'MOVE_FORWARD': character.animations[ 0 ],
+		controls = new TPKeyboardControls( car.scene, renderer.domElement, world.scene.getObjectByName( 'Mesh_Raceway_Collision' ), {
+			'MOVE_FORWARD': car.animations[ 0 ],
 		}, camera );
 		controls.cameraPositionOffset = new THREE.Vector3( 0, 2, - 5 );
 		controls.enableZoom = false;
@@ -108,6 +111,7 @@
 			'ArrowRight': [ 'ROTATE_RIGHT' ],
 			'ArrowLeft': [ 'ROTATE_LEFT' ]
 		};
+
 
 	} );
 
@@ -149,6 +153,15 @@
 	renderer.toneMapping = THREE.ACESFilmicToneMapping;
 	container.appendChild( renderer.domElement );
 
+	// Finish line collider
+	const geometry = new THREE.BoxGeometry( 12, 1, 1 );
+	const material = new THREE.MeshBasicMaterial( );
+	const finishLine = new THREE.Mesh( geometry, material );
+	finishLine.position.set( 1, - 10, 11.5 );
+	finishLine.geometry.computeBoundingBox();
+	finishLineBox.setFromObject( finishLine );
+	scene.add( finishLine );
+
 	// Stats
 	const stats = new Stats();
 	stats.domElement.style.position = 'absolute';
@@ -157,6 +170,14 @@
 
 	const velocity = new THREE.Vector3();
 	let prevV = 0;
+
+	let checkPointList = [];
+	const checkPointPositionList = [
+		new THREE.Vector3( 2, - 10, 30.6 ),
+		new THREE.Vector3( 63.2, - 9.12, 21.3 ),
+		new THREE.Vector3( 23.8, - 3.89, 27.7 ),
+		new THREE.Vector3( 25.98, - 9.55, - 11.94 )
+	];
 
 	function animate() {
 
@@ -168,11 +189,52 @@
 
 		controls && setSpeedometer( );
 
+		controls && updateLapProgress();
+
 		helpers && helpers.update();
 
 		renderer.render( scene, camera );
 
 		stats.update();
+
+	}
+
+	function validateCheckpoint( checkPointPosition, radius, number ) {
+	
+		if ( controls.object.position.distanceTo( checkPointPosition ) < radius ) {
+
+			if ( checkPointList.length === 0 || checkPointList[ checkPointList.length - 1 ] < number ) {
+
+				checkPointList.push( number );
+	
+			}
+
+		}
+	
+	}
+
+	function updateLapProgress() {
+
+		carBox.setFromObject( controls.object );
+
+		if ( carBox.intersectsBox( finishLineBox ) ) {
+
+			// [0, 1, 2, 3...]
+			if ( checkPointList.length === checkPointPositionList.length && checkPointList.every( ( num, i ) => num === i ) ) {
+
+				console.log( 'Lap completed!' );
+
+			}
+
+			checkPointList = [];
+	
+		}
+
+		for ( let i = 0; i < checkPointPositionList.length; i ++ ) {
+
+			validateCheckpoint( checkPointPositionList[ i ], 5.5, i );
+
+		}
 
 	}
 
