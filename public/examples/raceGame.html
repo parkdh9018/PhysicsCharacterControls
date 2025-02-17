@@ -22,6 +22,16 @@
 			</div>
 		</div>
 	</div>
+	<div id="timelaps-container">
+		<div id="lap-timer" class="timelap">
+			<div class="timelap-title">TIME</div>
+			<div class="timelap-content">00:00.000</div>
+		</div>
+		<div id="best-timer" class="timelap">
+			<div class="timelap-title">BEST</div>
+			<div class="timelap-content">00:00.000</div>
+		</div>
+	</div>
     <div id="container"></div>
 
     <script type="importmap">
@@ -45,6 +55,9 @@
 	const container = document.getElementById( 'container' );
 
 	const clock = new THREE.Clock();
+
+	let lapStartTime = 0;
+	let bestTime = 0;
 
 	const gltfLoader = new GLTFLoader();
 
@@ -155,7 +168,7 @@
 
 	// Finish line collider
 	const geometry = new THREE.BoxGeometry( 12, 1, 1 );
-	const material = new THREE.MeshBasicMaterial( );
+	const material = new THREE.MeshBasicMaterial( { opacity: 0, transparent: true } );
 	const finishLine = new THREE.Mesh( geometry, material );
 	finishLine.position.set( 1, - 10, 11.5 );
 	finishLine.geometry.computeBoundingBox();
@@ -191,6 +204,8 @@
 
 		controls && updateLapProgress();
 
+		setLapTimer();
+
 		helpers && helpers.update();
 
 		renderer.render( scene, camera );
@@ -199,12 +214,73 @@
 
 	}
 
+	function setLapTimer() {
+
+		const lapTimer = document.querySelector( '#lap-timer .timelap-content' );
+		if ( lapStartTime !== 0 && lapTimer ) {
+
+			const elapsedTime = ( clock.getElapsedTime() - lapStartTime ).toFixed( 3 );
+			lapTimer.textContent = formatTime( elapsedTime );
+	
+		}
+	
+	}
+
+	function setBestTimer() {
+
+		const bestTimer = document.querySelector( '#best-timer .timelap-content' );
+		if ( bestTimer ) {
+
+			bestTimer.textContent = formatTime( bestTime );
+	
+		}
+	
+	}
+
+	function formatTime( seconds ) {
+
+		const minutes = Math.floor( seconds / 60 );
+		const secs = Math.floor( seconds % 60 );
+		const millis = Math.floor( ( seconds % 1 ) * 1000 );
+
+		return `${String( minutes ).padStart( 2, '0' )}:${String( secs ).padStart( 2, '0' )}.${String( millis ).padStart( 3, '0' )}`;
+
+	}
+
+	function startLapTimer() {
+
+		if ( lapStartTime !== 0 ) return;
+	
+		lapStartTime = clock.getElapsedTime();
+	
+	}
+
+	function stopLapTimer() {
+
+		if ( lapStartTime === 0 ) return;
+
+		const lapEndTime = clock.getElapsedTime();
+		const lapTime = ( lapEndTime - lapStartTime ).toFixed( 2 );
+
+		if ( bestTime === 0 || lapTime <= bestTime ) {
+
+			bestTime = lapTime;
+			setBestTimer( formatTime( lapTime ) );
+	
+		}
+
+		lapStartTime = 0;
+
+	}
+
+
 	function validateCheckpoint( checkPointPosition, radius, number ) {
 	
 		if ( controls.object.position.distanceTo( checkPointPosition ) < radius ) {
 
+	
 			if ( checkPointList.length === 0 || checkPointList[ checkPointList.length - 1 ] < number ) {
-
+	
 				checkPointList.push( number );
 	
 			}
@@ -219,10 +295,12 @@
 
 		if ( carBox.intersectsBox( finishLineBox ) ) {
 
+			startLapTimer();
+
 			// [0, 1, 2, 3...]
 			if ( checkPointList.length === checkPointPositionList.length && checkPointList.every( ( num, i ) => num === i ) ) {
 
-				console.log( 'Lap completed!' );
+				stopLapTimer();
 
 			}
 
