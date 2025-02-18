@@ -4,8 +4,8 @@
     <title>Physics Character Controls - Supported by Three.js</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <link type="text/css" rel="stylesheet" href="main.css" />
-    <link type="text/css" rel="stylesheet" href="./racing/styles.css" />
+    <link type="text/css" rel="stylesheet" href="../main.css" />
+    <link type="text/css" rel="stylesheet" href="./styles.css" />
 	</head>
 	<body>
     <div id="info">
@@ -35,13 +35,13 @@
     <div id="container"></div>
 
     <script type="importmap">
-	{
-		"imports": {
-			"physics-character-controls": "../dist/bundle.esm.js",
-			"three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
-			"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+		{
+			"imports": {
+				"three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+				"three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/",
+				"three-game-controls": "../../dist/bundle.esm.js"
+			}
 		}
-	}
 	</script>
 	<script type="module">
 	import * as THREE from 'three';
@@ -50,7 +50,7 @@
 
 	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-	import { TPKeyboardControls, Collider } from 'physics-character-controls';
+	import { TPKeyboardControls, Collider } from 'three-game-controls';
 
 	const container = document.getElementById( 'container' );
 
@@ -68,8 +68,8 @@
 	const carBox = new THREE.Box3();
 
 	Promise.all( [
-		gltfLoader.loadAsync( './assets/models/raceway_map.glb' ),
-		gltfLoader.loadAsync( './assets/models/stylized_racing_car.glb' ),
+		gltfLoader.loadAsync( '../assets/models/raceway_map.glb' ),
+		gltfLoader.loadAsync( '../assets/models/stylized_racing_car.glb' ),
 	] ).then( ( [ world, car ] ) => {
 
 		scene.add( world.scene );
