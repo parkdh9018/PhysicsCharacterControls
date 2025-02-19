@@ -112,7 +112,7 @@
 		controls.enableZoom = false;
 		controls.syncAxisWithCamera = 'ALWAYS';
 		controls.enableRotationOnMove = false;
-		controls.groundedMoveSpeed = 60;
+		controls.groundedMoveSpeed = 100;
 		controls.cameraLerpFactor = 0.2;
 		controls.collider = new Collider( new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, 0 ), 1 );
 		controls.keyToActions = {
@@ -207,7 +207,7 @@
 
 		controls && controls.update( delta );
 
-		controls && rotateToMatchSurface();
+		controls && rotateToMatchSurface( 'Mesh_Raceway_Collision_Rework_24_-_Default_0' );
 
 		controls && setSpeedometer( );
 
@@ -246,6 +246,8 @@
 	
 	}
 
+	// Format time in seconds to MM:SS.SSS
+
 	function formatTime( seconds ) {
 
 		const minutes = Math.floor( seconds / 60 );
@@ -271,6 +273,8 @@
 		const lapEndTime = clock.getElapsedTime();
 		const lapTime = ( lapEndTime - lapStartTime ).toFixed( 2 );
 
+		// Set best time if it is the first lap or the lap time is better than the best time
+
 		if ( bestTime === 0 || lapTime <= bestTime ) {
 
 			bestTime = lapTime;
@@ -282,12 +286,12 @@
 
 	}
 
-
 	function validateCheckpoint( checkPointPosition, radius, number ) {
+
+		// Check if the car has passed the checkpoint ( within the radius )
 	
 		if ( controls.object.position.distanceTo( checkPointPosition ) < radius ) {
 
-	
 			if ( checkPointList.length === 0 || checkPointList[ checkPointList.length - 1 ] < number ) {
 	
 				checkPointList.push( number );
@@ -302,11 +306,14 @@
 
 		carBox.setFromObject( controls.object );
 
+		// Check if the car has passed the finish line
+
 		if ( carBox.intersectsBox( finishLineBox ) ) {
 
 			startLapTimer();
 
-			// [0, 1, 2, 3...]
+			// Check if the car has passed all checkpoints
+
 			if ( checkPointList.length === checkPointPositionList.length && checkPointList.every( ( num, i ) => num === i ) ) {
 
 				stopLapTimer();
@@ -331,10 +338,11 @@
 
 		const needle = document.getElementById( 'needle' );
 
-		const v = Math.max( ( velocity.z / 10 ) * 140, 0 );
+		const v = Math.max( ( velocity.z / 5 ) * 40, 0 );
 
 		const velocityNumber = document.getElementById( 'velocity' );
 
+		// Prevent the needle from vibrating when the speed is constant
 		if ( Math.abs( v - prevV ) < 10 ) return;
 
 		velocityNumber.textContent = Math.round( v );
@@ -345,24 +353,24 @@
 
 	}
 
-	function rotateToMatchSurface() {
+	// Adjusts the object's rotation to align with the surface it is on.
+
+	function rotateToMatchSurface( colliderObjectName ) {
 
 		const raycaster = new THREE.Raycaster();
-		raycaster.set( controls.object.position, new THREE.Vector3( 0, - 1, 0 ) ); // 아래 방향 (-Y)
+		raycaster.set( controls.object.position, new THREE.Vector3( 0, - 1, 0 ) );
 
-		// 교차한 객체들 검사
-		const intersects = raycaster.intersectObjects( scene.children, true ); // 지형 포함
+		const intersects = raycaster.intersectObjects( scene.children, true );
 		if ( intersects.length > 0 ) {
 
 			for ( const intersect of intersects ) {
 
-				if ( intersect.object.name === 'Mesh_Raceway_Collision_Rework_24_-_Default_0' && intersect.distance < 0.1 ) {
+				if ( intersect.object.name === colliderObjectName && intersect.distance < 0.1 ) {
 
-					const normal = intersect.face.normal.clone(); // 경사면의 법선 벡터
-					// Normal Matrix 생성 (스케일 영향을 제거)
+					const normal = intersect.face.normal.clone();
+	
 					const normalMatrix = new THREE.Matrix3().getNormalMatrix( intersect.object.matrixWorld );
 
-					// Normal Matrix로 법선 벡터 변환
 					normal.applyMatrix3( normalMatrix ).normalize();
 
 					const euler = controls.object.rotation.clone();
@@ -374,7 +382,6 @@
 					const quaternion2 = new THREE.Quaternion().setFromAxisAngle( up, euler.y );
 					quaternion.multiply( quaternion2 );
 
-					// controls.object.quaternion.slerp( quaternion, 0.3 );
 					controls.object.quaternion.copy( quaternion );
 
 				}
