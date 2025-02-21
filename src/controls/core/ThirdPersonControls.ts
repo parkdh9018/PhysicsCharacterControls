@@ -86,7 +86,6 @@ class ThirdPersonControls extends FirstPersonControls {
 	// Internals
 	private _forwardDirection: Vector3 = new Vector3();
 	private _objectLocalVelocity: Vector3 = new Vector3();
-	private _objectLookAtPosition: Vector3 = new Vector3();
 	private _movementDirection: Vector3 = new Vector3();
 
 	private _currentActionKey: Animation | null = null;
