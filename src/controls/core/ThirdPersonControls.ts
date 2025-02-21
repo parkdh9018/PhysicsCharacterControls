@@ -271,13 +271,11 @@ class ThirdPersonControls extends FirstPersonControls {
 
 		this._movementDirection.copy( this.velocity );
 		this._movementDirection.y = 0;
-		this.object.getWorldPosition( this._objectLookAtPosition );
 
 		// rotate on move
 		if ( this._movementDirection.length() > 1e-2 && this.enableRotationOnMove ) {
 
-			this._objectLookAtPosition.add( this._movementDirection );
-			this.object.lookAt( this._objectLookAtPosition );
+			this.object.rotation.y = Math.atan2( this._movementDirection.x, this._movementDirection.z );
 			return;
 
 		}
@@ -285,8 +283,7 @@ class ThirdPersonControls extends FirstPersonControls {
 		// rotate by sync
 		if ( this.syncAxisWithCamera === 'ALWAYS' || this._movementDirection.length() > 1e-2 ) {
 
-			this._objectLookAtPosition.add( this._forwardDirection );
-			this.object.lookAt( this._objectLookAtPosition );
+			this.object.rotation.y = Math.atan2( this._forwardDirection.x, this._forwardDirection.z );
 			return;
 
 		}
